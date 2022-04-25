@@ -203,12 +203,12 @@ Before starting, use the `apt` command to install prerequisite packages:
 ```
 sudo apt install autoconf automake autotools-dev bc bison build-essential curl \
 flex gawk gdisk git gperf libgmp-dev libmpc-dev libmpfr-dev libncurses-dev \
-libssl-dev libtool patchutils python screen texinfo unzip zlib1g-dev \
+libssl-dev libtool patchutils python2 screen texinfo unzip zlib1g-dev \
 libblkid-dev device-tree-compiler libglib2.0-dev libpixman-1-dev mtools \
 linux-firmware rsync python3 libexpat1-dev wget cpio xxd dosfstools \
 python3-pip libyaml-dev libelf-dev zlib1g-dev xutils-dev
 ```
-Install the python library `kconfiglib`. Without this the Hart Software Services (HSS) will fail to build with a genconfig error.
+Install the python2 library `kconfiglib`. Without this the Hart Software Services (HSS) will fail to build with a genconfig error.
 ```
 sudo pip3 install kconfiglib
 ```
@@ -223,7 +223,7 @@ pixman-devel mtools linux-firmware rsync python3 expat-devel wget cpio \
 vim-common dosfstools python3-pip libyaml-devel elfutils-libelf-devel \
 perl-ExtUtils-MakeMaker
 ```
-Install the python library `kconfiglib`. Without this the Hart Software Services (HSS) will fail to build with a genconfig error.
+Install the python2 library `kconfiglib`. Without this the Hart Software Services (HSS) will fail to build with a genconfig error.
 ```
 sudo pip3 install kconfiglib
 ```

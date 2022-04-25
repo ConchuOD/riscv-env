@@ -2,7 +2,7 @@
 
 / {
         description = "U-Boot fitImage for the MPFS";
-        #address-cells = <1>;
+        #address-cells = <2>;
 
         images {
                 vmlinux.bin {
@@ -12,8 +12,8 @@
                         arch = "riscv";
                         os = "linux";
                         compression = "none";
-                        load = <0x80200000>;
-                        entry = <0x80200000>;
+                        load = <0x10 0x0200000>;
+                        entry = <0x10 0x0200000>;
                         hash-1 {
                                 algo = "sha256";
                         };
@@ -24,7 +24,7 @@
                         type = "ramdisk";
                         arch = "riscv";
                         os = "linux";
-                        load = <0x84000000>;
+                        load = <0x10 0x40000000>;
                         hash-1 {
                                 algo = "sha256";
                         };
@@ -35,7 +35,7 @@
                         type = "flat_dt";
                         arch = "riscv";
                         compression = "none";
-                        load = <0x82200000>;
+                        load = <0x10 0x2200000>;
                         hash-1 {
                                 algo = "sha256";
                         };

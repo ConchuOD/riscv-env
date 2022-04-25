@@ -4,7 +4,9 @@ ABI ?= lp64d
 LIBERO_PATH ?= /usr/local/microsemi/Libero_v2021.1/
 SC_PATH ?= /usr/local/microsemi/SoftConsole-v2021.1/
 fpgenprog := $(LIBERO_PATH)/bin64/fpgenprog
-num_threads = $(shell nproc --ignore=1)
+num_threads := $(shell nproc --ignore=1)
+num_threads := $(shell echo $$(( $(num_threads) + 2 )))
+# num_threads = 4
 
 srcdir := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 srcdir := $(srcdir:/=)
@@ -102,17 +104,25 @@ OSBI_SUPPORT ?= y
 UBOOT_VERSION = 2020.10
 linux_defconfig := mpfs_devkit_defconfig
 linux_dtb := $(riscv_dtbdir)/sifive/hifive-unleashed-a00.dtb
+# else ifeq "$(DEVKIT)" "icicle-kit-es-amp"
+# HSS_SUPPORT ?= y
+# HSS_TARGET ?= mpfs-icicle-kit-es
+# AMP_SUPPORT ?= y
+# UBOOT_VERSION = 2021.10
+# linux_defconfig := icicle_kit_amp_defconfig
+# linux_dtb := $(riscv_dtbdir)/microchip/microchip-mpfs-icicle-kit-context-a.dtb
+# else
 else ifeq "$(DEVKIT)" "icicle-kit-es-amp"
 HSS_SUPPORT ?= y
 HSS_TARGET ?= mpfs-icicle-kit-es
 AMP_SUPPORT ?= y
-UBOOT_VERSION = 2021.10
-linux_defconfig := icicle_kit_amp_defconfig
-linux_dtb := $(riscv_dtbdir)/microchip/microchip-mpfs-icicle-kit-context-a.dtb
+UBOOT_VERSION = 2022.01
+linux_defconfig := defconfig
+linux_dtb := $(riscv_dtbdir)/microchip/microchip-mpfs-icicle-kit.dtb
 else
 HSS_SUPPORT ?= y
 HSS_TARGET ?= mpfs-icicle-kit-es
-UBOOT_VERSION = 2021.10
+UBOOT_VERSION = 2022.01
 linux_defconfig := icicle_kit_defconfig
 linux_dtb := $(riscv_dtbdir)/microchip/microchip-mpfs-icicle-kit.dtb
 endif
@@ -148,7 +158,7 @@ $(CROSS_COMPILE)gcc: $(toolchain_srcdir)
 		--with-abi=$(ABI) \
 		--enable-linux
 	$(MAKE) -C $(toolchain_wrkdir) -j$(num_threads)
-	sed 's/^#define LINUX_VERSION_CODE.*/#define LINUX_VERSION_CODE 330752/' -i $(toolchain_dest)/sysroot/usr/include/linux/version.h
+	sed 's/^#define LINUX_VERSION_CODE.*/#define LINUX_VERSION_CODE 332032/' -i $(toolchain_dest)/sysroot/usr/include/linux/version.h
 endif
 
 $(buildroot_builddir_stamp): $(buildroot_srcdir) $(buildroot_patches)
@@ -316,7 +326,7 @@ buildroot_initramfs_sysroot: $(buildroot_initramfs_sysroot)
 vmlinux: $(vmlinux)
 fit: $(fit)
 initrd: $(initramfs)
-u-boot: $(uboot_s)
+u-boot: $(hss_uboot_payload_bin)
 flash_image: $(flash_image)
 opensbi: $(opensbi)
 fsbl: $(fsbl)
@@ -324,9 +334,12 @@ bootloaders: $(bootloaders-y)
 root-fs: $(rootfs)
 dtbs: ${device_tree_blob}
 
-.PHONY: clean distclean
+.PHONY: clean distclean clean-linux
 clean:
 	rm -rf -- $(wrkdir)
+
+clean-linux:
+	rm -rf -- $(fit) $(device_tree_blob) $(vfat_image) $(kernel-modules-stamp)  $(kernel-modules-install-stamp) $(vmlinux_bin) $(linux_wrkdir) $(hss_uboot_payload_bin)
 
 distclean:
 	rm -rf -- $(wrkdir) $(toolchain_dest) br-dl-dir/ arch/ include/ scripts/ .cache.mk
@@ -380,26 +393,22 @@ HSS_PAYLOAD 	= 21686148-6449-6E6F-744E-656564454649
 # partition addreses
 UENV_START=100
 UENV_END=1023
-FSBL_START=1024
-FSBL_END=2047
-FSBL_SIZE=1023
-VFAT_START=2048
-VFAT_END=151976
-VFAT_SIZE=149928
-RESERVED_SIZE=2000
-OSBI_START=1549024
-OSBI_END=189024
-
-
 FSBL_START=2048
 FSBL_END=4095
 FSBL_SIZE=2048
 VFAT_START=4096
-VFAT_END=154023
-VFAT_SIZE=149928
+VFAT_END=184023
+VFAT_SIZE=179928
 RESERVED_SIZE=2000
-OSBI_START=155648
-OSBI_END=189024
+OSBI_START=185648
+OSBI_END=219024
+
+# partition addreses for icicle kit
+UBOOT_START=2048
+UBOOT_END=23248
+LINUX_START=24096
+LINUX_END=208119
+ROOT_START=209119
 
 # partition addreses for icicle kit
 UBOOT_START=2048

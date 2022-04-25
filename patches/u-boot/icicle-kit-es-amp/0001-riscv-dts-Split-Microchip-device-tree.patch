@@ -51,7 +51,7 @@ index 89c4cf5fb2..287ef3d23b 100644
  	aliases {
 -		serial0 = &uart0;
 -		ethernet0 = &emac1;
-+		serial1 = &uart1;
++		serial1 = &uart2;
 +		ethernet0 = &mac1;
  	};
  
