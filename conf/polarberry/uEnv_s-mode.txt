@@ -3,7 +3,10 @@
 # this assumes ${fileaddr} is already set!!
 
 setenv partitions "name=u-boot,start=4M,size=1M,type=21686148-6449-6E6F-744E-656564454649;name=kernel,size=100M,type=0FC63DAF-8483-4772-8E79-3D69D8477DE4;name=root,size=-,type=0FC63DAF-8483-4772-8E79-3D69D8477DE4;"
-load mmc 0:2 ${fileaddr} fitImage.fit;
+setenv autoload no;
+dhcp;
+setenv serverip 192.168.2.5
+tftp 0x90000000 fitImage.fit
 bootm start 0x90000000;
 bootm loados 0x90000000;
 bootm ramdisk;

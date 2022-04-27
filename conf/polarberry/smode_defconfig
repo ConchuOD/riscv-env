@@ -15,7 +15,7 @@ CONFIG_DM_MTD=y
 # CONFIG_FIT=
 # CONFIG_FIT_SIGNATURE=
 # CONFIG_RSA=
-CONFIG_BOOTCOMMAND="setenv partitions \"name=u-boot,start=4M,size=1M,type=21686148-6449-6E6F-744E-656564454649;name=kernel,size=100M,type=0FC63DAF-8483-4772-8E79-3D69D8477DE4;name=root,size=-,type=0FC63DAF-8483-4772-8E79-3D69D8477DE4;\"; setenv fileaddr 0x90000000; load mmc 0:2 ${fileaddr} boot.scr; source ${fileaddr};"
+CONFIG_BOOTCOMMAND="setenv fileaddr 0x1030000000; setenv autoload no; dhcp; setenv serverip 192.168.2.5; tftp 0x90000000 pb-boot.scr; source ${fileaddr};"
 CONFIG_SYS_BOOT_RAMDISK_HIGH=y
 CONFIG_PHYS_64BIT=y
 
