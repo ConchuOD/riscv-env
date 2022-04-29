@@ -105,6 +105,42 @@ bootloaders-$(OSBI_SUPPORT) += $(opensbi)
 bootloaders-$(HSS_SUPPORT) += $(hss_uboot_payload_bin)
 bootloaders-$(AMP_SUPPORT) += $(amp_example)
 
+.PHONY: tftp-boot all-devkits dtbs_check dt_binding_check
+tftp-boot:
+	$(MAKE) clean-linux
+	$(MAKE) all DEVKIT=$(DEVKIT) 2>&1 | tee logs/tftp.log
+	cp $(fit) /srv/tftp
+	cd $(linux_srcdir) && ./scripts/clang-tools/gen_compile_commands.py ${linux_wrkdir}
+
+all-devkits:
+	$(MAKE) clean-linux
+	$(MAKE) all DEVKIT=polarberry 2>&1 | tee logs/polarberry.log
+	$(MAKE) clean-linux
+	- $(MAKE) all DEVKIT=icicle-kit-es 2>&1 | tee logs/icicle.log
+	$(MAKE) clean-linux
+	$(MAKE) all DEVKIT=mainline 2>&1 | tee logs/icicle.log
+
+dtbs_check:
+	$(MAKE) clean-linux
+	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
+		ARCH=riscv \
+		CROSS_COMPILE=$(CROSS_COMPILE) \
+		PATH=$(PATH) \
+		defconfig
+	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
+		ARCH=riscv \
+		CROSS_COMPILE=$(CROSS_COMPILE) \
+		PATH=$(PATH) \
+		dtbs_check 2>&1 -j$(num_threads) | tee logs/dtbs_check.log
+
+dt_binding_check:
+	$(MAKE) clean-linux
+	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
+		ARCH=riscv \
+		CROSS_COMPILE=$(CROSS_COMPILE) \
+		PATH=$(PATH) \
+		dt_binding_check -j$(num_threads) | tee logs/dt_binding_check.log
+
 all: $(fit) $(vfat_image) $(bootloaders-y)
 	@echo
 	@echo "GPT (for SPI flash or SDcard) and U-boot Image files have"

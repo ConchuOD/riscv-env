@@ -9,3 +9,4 @@ scripts/
 *.orig
 rootfs.tar.gz
 br-dl-dir/
+logs
