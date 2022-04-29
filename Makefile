@@ -46,7 +46,7 @@ buildroot_patches := $(shell ls $(buildroot_patchdir)/*.patch)
 buildroot_builddir := $(wrkdir)/buildroot_build
 buildroot_builddir_stamp := $(wrkdir)/.buildroot_builddir
 
-linux_srcdir := $(srcdir)/linux
+linux_srcdir := /stuff/linux
 linux_wrkdir := $(wrkdir)/linux
 riscv_dtbdir := $(linux_wrkdir)/arch/riscv/boot/dts/
 
@@ -98,34 +98,7 @@ amp_example := $(buildroot_initramfs_wrkdir)/images/mpfs-rpmsg-remote.elf
 amp_example_srcdir := $(srcdir)/polarfire-soc-examples/polarfire-soc-amp-examples/mpfs-rpmsg-freertos
 amp_example_wrkdir := $(wrkdir)/amp/mpfs-rpmsg-freertos
 
-ifeq "$(DEVKIT)" "mpfs"
-FSBL_SUPPORT ?= y
-OSBI_SUPPORT ?= y
-UBOOT_VERSION = 2020.10
-linux_defconfig := mpfs_devkit_defconfig
-linux_dtb := $(riscv_dtbdir)/sifive/hifive-unleashed-a00.dtb
-# else ifeq "$(DEVKIT)" "icicle-kit-es-amp"
-# HSS_SUPPORT ?= y
-# HSS_TARGET ?= mpfs-icicle-kit-es
-# AMP_SUPPORT ?= y
-# UBOOT_VERSION = 2021.10
-# linux_defconfig := icicle_kit_amp_defconfig
-# linux_dtb := $(riscv_dtbdir)/microchip/microchip-mpfs-icicle-kit-context-a.dtb
-# else
-else ifeq "$(DEVKIT)" "icicle-kit-es-amp"
-HSS_SUPPORT ?= y
-HSS_TARGET ?= mpfs-icicle-kit-es
-AMP_SUPPORT ?= y
-UBOOT_VERSION = 2022.01
-linux_defconfig := defconfig
-linux_dtb := $(riscv_dtbdir)/microchip/microchip-mpfs-icicle-kit.dtb
-else
-HSS_SUPPORT ?= y
-HSS_TARGET ?= mpfs-icicle-kit-es
-UBOOT_VERSION = 2022.01
-linux_defconfig := icicle_kit_defconfig
-linux_dtb := $(riscv_dtbdir)/microchip/microchip-mpfs-icicle-kit.dtb
-endif
+include conf/$(DEVKIT)/board.mk
 
 bootloaders-$(FSBL_SUPPORT) += $(fsbl)
 bootloaders-$(OSBI_SUPPORT) += $(opensbi)
@@ -158,7 +131,7 @@ $(CROSS_COMPILE)gcc: $(toolchain_srcdir)
 		--with-abi=$(ABI) \
 		--enable-linux
 	$(MAKE) -C $(toolchain_wrkdir) -j$(num_threads)
-	sed 's/^#define LINUX_VERSION_CODE.*/#define LINUX_VERSION_CODE 332032/' -i $(toolchain_dest)/sysroot/usr/include/linux/version.h
+	sed 's/^#define LINUX_VERSION_CODE.*/#define LINUX_VERSION_CODE 331776/' -i $(toolchain_dest)/sysroot/usr/include/linux/version.h
 endif
 
 $(buildroot_builddir_stamp): $(buildroot_srcdir) $(buildroot_patches)
@@ -271,8 +244,8 @@ $(device_tree_blob): $(vmlinux)
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) ARCH=riscv dtbs
 	cp $(linux_dtb) $(device_tree_blob)
 
-$(fit): $(uboot_s) $(vmlinux_bin) $(initramfs) $(device_tree_blob) $(confdir)/osbi-fit-image.its $(kernel-modules-install-stamp)
-	PATH=$(PATH) $(buildroot_initramfs_wrkdir)/build/uboot-$(UBOOT_VERSION)/tools/mkimage -f $(confdir)/osbi-fit-image.its -A riscv -O linux -T flat_dt $@
+$(fit): $(uboot_s) $(vmlinux_bin) $(initramfs) $(device_tree_blob) $(its_file) $(kernel-modules-install-stamp)
+	PATH=$(PATH) $(buildroot_initramfs_wrkdir)/build/uboot-$(UBOOT_VERSION)/tools/mkimage -f $(its_file) -A riscv -O linux -T flat_dt $@
 
 $(libversion): $(fsbl_wrkdir_stamp)
 	- rm -rf $(libversion)
