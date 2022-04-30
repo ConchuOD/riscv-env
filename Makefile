@@ -352,7 +352,7 @@ clean:
 	rm -rf -- $(wrkdir)
 
 clean-linux:
-	rm -rf -- $(fit) $(device_tree_blob) $(vfat_image) $(kernel-modules-stamp)  $(kernel-modules-install-stamp) $(vmlinux_bin) $(linux_wrkdir) $(hss_uboot_payload_bin)
+	rm -rf -- $(initramfs) $(fit) $(device_tree_blob) $(vfat_image) $(kernel-modules-stamp)  $(kernel-modules-install-stamp) $(vmlinux_bin) $(linux_wrkdir) $(hss_uboot_payload_bin)
 
 distclean:
 	rm -rf -- $(wrkdir) $(toolchain_dest) br-dl-dir/ arch/ include/ scripts/ .cache.mk
@@ -422,13 +422,6 @@ UBOOT_END=23248
 LINUX_START=24096
 LINUX_END=208119
 ROOT_START=209119
-
-# partition addreses for icicle kit
-UBOOT_START=2048
-UBOOT_END=23248
-LINUX_START=24096
-LINUX_END=193120
-ROOT_START=195168
 
 .PHONY: format-icicle-image
 format-icicle-image: $(fit) $(uboot_s_scr)
