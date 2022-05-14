@@ -88,8 +88,6 @@ openocd := $(openocd_wrkdir)/src/openocd
 
 payload_generator_url := https://github.com/polarfire-soc/hart-software-services/releases/download/2021.11/hss-payload-generator.zip
 payload_generator_tarball := $(srcdir)/br-dl-dir/payload_generator.zip
-# payload_generator_srcdir := $(srcdir)/hart-software-services/tools/hss-payload-generator
-# payloadgen_wrkdir := $(wrkdir)/payload_generator
 hss_payload_generator := $(wrkdir)/hss-payload-generator
 hss_srcdir := $(srcdir)/hart-software-services
 hss_uboot_payload_bin := $(wrkdir)/payload.bin
@@ -98,6 +96,11 @@ payload_config := $(confdir)/$(DEVKIT)/config.yaml
 amp_example := $(buildroot_initramfs_wrkdir)/images/mpfs-rpmsg-remote.elf
 amp_example_srcdir := $(srcdir)/polarfire-soc-examples/polarfire-soc-amp-examples/mpfs-rpmsg-freertos
 amp_example_wrkdir := $(wrkdir)/amp/mpfs-rpmsg-freertos
+
+GENIMAGE_CFG=$(confdir)/genimage-icicle-mpfs.cfg
+TARGET_DIR=$(CURDIR)/work
+BINARIES_DIR=$(CURDIR)/work
+GENIMAGE_TMP=/tmp/genimage-${DEVKIT}
 
 include conf/$(DEVKIT)/board.mk
 
@@ -132,7 +135,7 @@ dtbs_check:
 		ARCH=riscv \
 		CROSS_COMPILE=$(CROSS_COMPILE) \
 		PATH=$(PATH) \
-		dtbs_check 2>&1 -j$(num_threads) | tee logs/dtbs_check.log
+		dtbs_check -j$(num_threads) 2>&1 | tee logs/dtbs_check.log
 
 dt_binding_check:
 	$(MAKE) clean-linux
@@ -140,7 +143,7 @@ dt_binding_check:
 		ARCH=riscv \
 		CROSS_COMPILE=$(CROSS_COMPILE) \
 		PATH=$(PATH) \
-		dt_binding_check -j$(num_threads) | tee logs/dt_binding_check.log
+		dt_binding_check -j$(num_threads) 2>&1 | tee logs/dt_binding_check.log
 
 all: $(fit) $(vfat_image) $(bootloaders-y)
 	@echo
@@ -528,3 +531,14 @@ ifeq ($(DEVKIT),mpfs)
 else 
 	dd if=$(rootfs) of=$(PART3) bs=4096
 endif
+
+.PHONY: genimage-icicle-image
+genimage-icicle-image: $(fit) $(uboot_s_scr)
+	rm -rf $(GENIMAGE_TMP)
+	mkdir -p $(GENIMAGE_TMP)
+	$(CURDIR)/work/buildroot_initramfs/host/bin/genimage \
+		--rootpath "${TARGET_DIR}" \
+		--tmppath "${GENIMAGE_TMP}" \
+		--inputpath "${BINARIES_DIR}" \
+		--outputpath "${BINARIES_DIR}" \
+		--config "${GENIMAGE_CFG}"
