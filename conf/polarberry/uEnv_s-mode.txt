@@ -6,9 +6,9 @@ setenv partitions "name=u-boot,start=4M,size=1M,type=21686148-6449-6E6F-744E-656
 setenv autoload no;
 dhcp;
 setenv serverip 192.168.2.5
-tftp 0x90000000 fitImage.fit
-bootm start 0x90000000;
-bootm loados 0x90000000;
+tftp  ${fileaddr}fitImage.fit
+bootm start ${fileaddr};
+bootm loados ${fileaddr};
 bootm ramdisk;
 bootm prep;
 fdt set /soc/ethernet@20112000 mac-address ${icicle_mac_addr0};
