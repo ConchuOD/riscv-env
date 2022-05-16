@@ -1,4 +1,5 @@
 ISA ?= rv64imafdc
+
 ABI ?= lp64d
 
 LIBERO_PATH ?= /usr/local/microsemi/Libero_v2021.1/
@@ -46,7 +47,7 @@ buildroot_patches := $(shell ls $(buildroot_patchdir)/*.patch)
 buildroot_builddir := $(wrkdir)/buildroot_build
 buildroot_builddir_stamp := $(wrkdir)/.buildroot_builddir
 
-linux_srcdir := /stuff/linux
+linux_srcdir := ~/stuff/buildroot-prs/linux
 linux_wrkdir := $(wrkdir)/linux
 riscv_dtbdir := $(linux_wrkdir)/arch/riscv/boot/dts/
 
@@ -103,6 +104,7 @@ BINARIES_DIR=$(CURDIR)/work
 GENIMAGE_TMP=/tmp/genimage-${DEVKIT}
 
 include conf/$(DEVKIT)/board.mk
+tftp_boot_scr ?= boot.scr
 
 bootloaders-$(FSBL_SUPPORT) += $(fsbl)
 bootloaders-$(OSBI_SUPPORT) += $(opensbi)
@@ -114,6 +116,7 @@ tftp-boot:
 	$(MAKE) clean-linux
 	$(MAKE) all DEVKIT=$(DEVKIT) 2>&1 | tee logs/tftp.log
 	cp $(fit) /srv/tftp
+	cp $(uboot_s_scr) /srv/tftp/$(tftp_boot_scr)
 	cd $(linux_srcdir) && ./scripts/clang-tools/gen_compile_commands.py ${linux_wrkdir}
 
 all-devkits:
@@ -171,7 +174,7 @@ $(CROSS_COMPILE)gcc: $(toolchain_srcdir)
 		--with-abi=$(ABI) \
 		--enable-linux
 	$(MAKE) -C $(toolchain_wrkdir) -j$(num_threads)
-	sed 's/^#define LINUX_VERSION_CODE.*/#define LINUX_VERSION_CODE 331776/' -i $(toolchain_dest)/sysroot/usr/include/linux/version.h
+	sed 's/^#define LINUX_VERSION_CODE.*/#define LINUX_VERSION_CODE 332005/' -i $(toolchain_dest)/sysroot/usr/include/linux/version.h
 endif
 
 $(buildroot_builddir_stamp): $(buildroot_srcdir) $(buildroot_patches)
@@ -355,7 +358,7 @@ clean:
 	rm -rf -- $(wrkdir)
 
 clean-linux:
-	rm -rf -- $(initramfs) $(fit) $(device_tree_blob) $(vfat_image) $(kernel-modules-stamp)  $(kernel-modules-install-stamp) $(vmlinux_bin) $(linux_wrkdir) $(hss_uboot_payload_bin)
+	rm -rf -- $(fit) $(device_tree_blob) $(vfat_image) $(kernel-modules-stamp) $(initramfs) $(initramfs_uc) $(kernel-modules-install-stamp) $(vmlinux_bin) $(linux_wrkdir) $(hss_uboot_payload_bin)
 
 distclean:
 	rm -rf -- $(wrkdir) $(toolchain_dest) br-dl-dir/ arch/ include/ scripts/ .cache.mk

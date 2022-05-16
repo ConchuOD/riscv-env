@@ -1,0 +1,37 @@
+From 011d1d54fe5d75fad0e535a67e9be9afa2471556 Mon Sep 17 00:00:00 2001
+From: Conor Dooley <conor.dooley@microchip.com>
+Date: Wed, 11 May 2022 10:16:32 +0100
+Subject: [PATCH 6/7] use lowmem dt
+
+Signed-off-by: Conor Dooley <conor.dooley@microchip.com>
+---
+ arch/riscv/dts/microchip-mpfs-icicle-kit.dts | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/arch/riscv/dts/microchip-mpfs-icicle-kit.dts b/arch/riscv/dts/microchip-mpfs-icicle-kit.dts
+index 199aa1bdcf..71b8fefc9e 100644
+--- a/arch/riscv/dts/microchip-mpfs-icicle-kit.dts
++++ b/arch/riscv/dts/microchip-mpfs-icicle-kit.dts
+@@ -79,10 +79,17 @@
+ 		memory-region = <&fabricbuf2>;
+ 		sync-mode = <3>;
+ 	};
++	
++	ddrc_cache_lo: memory@80000000 {
++		device_type = "memory";
++		reg = <0x0 0x80000000 0x0 0x2e000000>;
++		clocks = <&clkcfg CLK_DDRC>;
++		status = "okay";
++	};
+ 
+-	ddrc_cache: memory@1000000000 {
++	ddrc_cache_hi: memory@1000000000 {
+ 		device_type = "memory";
+-		reg = <0x10 0x0 0x0 0x76000000>;
++		reg = <0x10 0x0 0x0 0x40000000>;
+ 		clocks = <&clkcfg CLK_DDRC>;
+ 		status = "okay";
+ 	};
+-- 
+2.36.1
+
