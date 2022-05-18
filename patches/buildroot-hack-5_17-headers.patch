@@ -1,0 +1,96 @@
+From 200322ad879d0d6f8e17d12c6ad21ea10e5c01bf Mon Sep 17 00:00:00 2001
+From: Conor Dooley <conor.dooley@microchip.com>
+Date: Wed, 20 Apr 2022 14:19:15 +0100
+Subject: [PATCH] 123
+
+---
+ package/linux-headers/Config.in.host            |  9 +++++++++
+ toolchain/Config.in                             |  9 +++++++++
+ .../toolchain-external-custom/Config.in.options | 17 +++++++++++++++++
+ 3 files changed, 35 insertions(+)
+
+diff --git a/package/linux-headers/Config.in.host b/package/linux-headers/Config.in.host
+index 2b20a48176..729ee4f286 100644
+--- a/package/linux-headers/Config.in.host
++++ b/package/linux-headers/Config.in.host
+@@ -71,6 +71,12 @@ config BR2_KERNEL_HEADERS_5_13
+ 	select BR2_TOOLCHAIN_HEADERS_AT_LEAST_5_13
+ 	select BR2_KERNEL_HEADERS_LATEST
+ 
++config BR2_KERNEL_HEADERS_5_17
++	bool "Linux 5.17.x kernel headers"
++	select BR2_TOOLCHAIN_HEADERS_AT_LEAST_5_16
++	select BR2_TOOLCHAIN_HEADERS_AT_LEAST_5_17
++	select BR2_KERNEL_HEADERS_LATEST
++
+ config BR2_KERNEL_HEADERS_VERSION
+ 	bool "Manually specified Linux version"
+ 	help
+@@ -379,6 +385,9 @@ config BR2_DEFAULT_KERNEL_HEADERS
+ 	default "5.11.22"	if BR2_KERNEL_HEADERS_5_11
+ 	default "5.12.19"	if BR2_KERNEL_HEADERS_5_12
+ 	default "5.13.19"	if BR2_KERNEL_HEADERS_5_13
++	default "5.15.30"	if BR2_KERNEL_HEADERS_5_15
++	default "5.16.16"	if BR2_KERNEL_HEADERS_5_16
++	default "5.17.1"	if BR2_KERNEL_HEADERS_5_16
+ 	default BR2_DEFAULT_KERNEL_VERSION if BR2_KERNEL_HEADERS_VERSION
+ 	default "custom"	if BR2_KERNEL_HEADERS_CUSTOM_TARBALL
+ 	default BR2_KERNEL_HEADERS_CUSTOM_REPO_VERSION \
+diff --git a/toolchain/Config.in b/toolchain/Config.in
+index 3ea3fbb097..ff17f7d2f4 100644
+--- a/toolchain/Config.in
++++ b/toolchain/Config.in
+@@ -556,6 +556,11 @@ config BR2_TOOLCHAIN_HEADERS_AT_LEAST_5_13
+ 	select BR2_TOOLCHAIN_HEADERS_AT_LEAST_5_12
+ 	select BR2_TOOLCHAIN_HEADERS_LATEST
+ 
++config BR2_TOOLCHAIN_HEADERS_AT_LEAST_5_17
++	bool
++	select BR2_TOOLCHAIN_HEADERS_AT_LEAST_5_16
++	select BR2_TOOLCHAIN_HEADERS_LATEST
++
+ # This should be selected by the latest version, above, to indicate that
+ # Buildroot does not know of more recent headers than the ones selected.
+ # This allows using toolchains with headers more recent than Buildroot
+@@ -567,6 +572,10 @@ config BR2_TOOLCHAIN_HEADERS_LATEST
+ # stops affecting a value on the first matching default.
+ config BR2_TOOLCHAIN_HEADERS_AT_LEAST
+ 	string
++	default "5.17" if BR2_TOOLCHAIN_HEADERS_AT_LEAST_5_17
++	default "5.16" if BR2_TOOLCHAIN_HEADERS_AT_LEAST_5_16
++	default "5.15" if BR2_TOOLCHAIN_HEADERS_AT_LEAST_5_15
++	default "5.14" if BR2_TOOLCHAIN_HEADERS_AT_LEAST_5_14
+ 	default "5.13" if BR2_TOOLCHAIN_HEADERS_AT_LEAST_5_13
+ 	default "5.12" if BR2_TOOLCHAIN_HEADERS_AT_LEAST_5_12
+ 	default "5.11" if BR2_TOOLCHAIN_HEADERS_AT_LEAST_5_11
+diff --git a/toolchain/toolchain-external/toolchain-external-custom/Config.in.options b/toolchain/toolchain-external/toolchain-external-custom/Config.in.options
+index bc4561f3f7..fec78b53a9 100644
+--- a/toolchain/toolchain-external/toolchain-external-custom/Config.in.options
++++ b/toolchain/toolchain-external/toolchain-external-custom/Config.in.options
+@@ -123,6 +123,23 @@ choice
+ 	  If your toolchain uses headers newer than the latest version
+ 	  in the choice, then select the latest version.
+ 
++config BR2_TOOLCHAIN_EXTERNAL_HEADERS_5_17
++	bool "5.17.x or later"
++	select BR2_TOOLCHAIN_HEADERS_AT_LEAST_5_17
++	select BR2_TOOLCHAIN_HEADERS_AT_LEAST_5_16
++
++config BR2_TOOLCHAIN_EXTERNAL_HEADERS_5_16
++	bool "5.16.x or later"
++	select BR2_TOOLCHAIN_HEADERS_AT_LEAST_5_16
++
++config BR2_TOOLCHAIN_EXTERNAL_HEADERS_5_15
++	bool "5.15.x"
++	select BR2_TOOLCHAIN_HEADERS_AT_LEAST_5_15
++
++config BR2_TOOLCHAIN_EXTERNAL_HEADERS_5_14
++	bool "5.14.x"
++	select BR2_TOOLCHAIN_HEADERS_AT_LEAST_5_14
++
+ config BR2_TOOLCHAIN_EXTERNAL_HEADERS_5_13
+ 	bool "5.13.x or later"
+ 	select BR2_TOOLCHAIN_HEADERS_AT_LEAST_5_13
+-- 
+2.36.1
+
