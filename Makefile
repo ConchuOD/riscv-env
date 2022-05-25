@@ -14,12 +14,17 @@ srcdir := $(srcdir:/=)
 patchdir := $(CURDIR)/patches
 confdir := $(srcdir)/conf
 wrkdir := $(CURDIR)/work
+linux_srcdir := /stuff/linux
+linux_wrkdir := $(wrkdir)/linux
+riscv_dtbdir := $(linux_wrkdir)/arch/riscv/boot/dts/
 
 # target icicle w/ emmc by default
 DEVKIT ?= icicle-kit-es
 ifeq "$(DEVKIT)" "icicle-kit-es-sd"
 override DEVKIT = icicle-kit-es
 endif
+
+include conf/$(DEVKIT)/board.mk
 
 RISCV ?= $(CURDIR)/toolchain
 PATH := $(RISCV)/bin:$(PATH)
@@ -33,23 +38,23 @@ CROSS_COMPILE := $(RISCV)/bin/$(target)-
 target_gdb := $(CROSS_COMPILE)gdb
 
 buildroot_srcdir := $(srcdir)/buildroot
-buildroot_initramfs_wrkdir := $(wrkdir)/buildroot_initramfs
+buildroot_initramfs_wrkdir := $(wrkdir)/$(DEVKIT)/buildroot_initramfs
+buildroot_builddir := $(wrkdir)/$(DEVKIT)/buildroot_build
+buildroot_initramfs_sysroot := $(wrkdir)/$(DEVKIT)/buildroot_initramfs_sysroot
+
 buildroot_initramfs_tar := $(buildroot_initramfs_wrkdir)/images/rootfs.tar
 buildroot_initramfs_config := $(confdir)/$(DEVKIT)/buildroot_initramfs_config
-buildroot_initramfs_sysroot_stamp := $(wrkdir)/.buildroot_initramfs_sysroot
-buildroot_initramfs_sysroot := $(wrkdir)/buildroot_initramfs_sysroot
 buildroot_rootfs_wrkdir := $(wrkdir)/buildroot_rootfs
 buildroot_rootfs_ext := $(buildroot_rootfs_wrkdir)/images/rootfs.ext4
 buildroot_rootfs_config := $(confdir)/buildroot_rootfs_config
 
 buildroot_patchdir := $(patchdir)/buildroot/
 buildroot_patches := $(shell ls $(buildroot_patchdir)/*.patch)
-buildroot_builddir := $(wrkdir)/buildroot_build
-buildroot_builddir_stamp := $(wrkdir)/.buildroot_builddir
 
-linux_srcdir := ~/stuff/buildroot-prs/linux
-linux_wrkdir := $(wrkdir)/linux
-riscv_dtbdir := $(linux_wrkdir)/arch/riscv/boot/dts/
+kernel-modules-stamp := $(wrkdir)/.modules_stamp
+kernel-modules-install-stamp := $(wrkdir)/$(DEVKIT)/.modules_install_stamp
+buildroot_initramfs_sysroot_stamp := $(wrkdir)/$(DEVKIT)/.buildroot_initramfs_sysroot
+buildroot_builddir_stamp := $(wrkdir)/$(DEVKIT)/.buildroot_builddir
 
 vmlinux := $(linux_wrkdir)/vmlinux
 vmlinux_stripped := $(linux_wrkdir)/vmlinux-stripped
@@ -60,12 +65,14 @@ kernel-modules-install-stamp := $(wrkdir)/.modules_install_stamp
 
 flash_image := $(wrkdir)/$(DEVKIT)-$(GITID).gpt
 vfat_image := $(wrkdir)/$(DEVKIT)-vfat.part
-initramfs_uc := $(wrkdir)/initramfs.cpio
+initramfs_uc := $(wrkdir)/$(DEVKIT)-initramfs.cpio
 initramfs := $(wrkdir)/initramfs.cpio.gz
 rootfs := $(wrkdir)/rootfs.bin
 fit := $(wrkdir)/fitImage.fit
 
 device_tree_blob := $(wrkdir)/riscvpc.dtb
+
+# device_tree_blob := $(wrkdir)/$(DEVKIT).dtb
 
 fsbl_srcdir := $(srcdir)/fsbl
 fsbl_wrkdir := $(wrkdir)/fsbl
@@ -89,7 +96,7 @@ openocd := $(openocd_wrkdir)/src/openocd
 
 payload_generator_url := https://github.com/polarfire-soc/hart-software-services/releases/download/2021.11/hss-payload-generator.zip
 payload_generator_tarball := $(srcdir)/br-dl-dir/payload_generator.zip
-hss_payload_generator := $(wrkdir)/hss-payload-generator
+hss_payload_generator := /stuff/hss-payload-generator
 hss_srcdir := $(srcdir)/hart-software-services
 hss_uboot_payload_bin := $(wrkdir)/payload.bin
 payload_config := $(confdir)/$(DEVKIT)/config.yaml
@@ -103,13 +110,14 @@ TARGET_DIR=$(CURDIR)/work
 BINARIES_DIR=$(CURDIR)/work
 GENIMAGE_TMP=/tmp/genimage-${DEVKIT}
 
-include conf/$(DEVKIT)/board.mk
 tftp_boot_scr ?= boot.scr
 
 bootloaders-$(FSBL_SUPPORT) += $(fsbl)
 bootloaders-$(OSBI_SUPPORT) += $(opensbi)
 bootloaders-$(HSS_SUPPORT) += $(hss_uboot_payload_bin)
 bootloaders-$(AMP_SUPPORT) += $(amp_example)
+
+deploy_dir := $(CURDIR)/deploy
 
 .PHONY: tftp-boot all-devkits dtbs_check dt_binding_check
 tftp-boot:
@@ -246,7 +254,9 @@ $(initramfs_uc): $(buildroot_initramfs_sysroot) $(vmlinux) $(kernel-modules-inst
 		$(buildroot_initramfs_sysroot)
 
 $(initramfs): $(initramfs_uc)
+	- rm $(initramfs)
 	gzip $(initramfs_uc) --keep -q
+	mv $(initramfs_uc).gz $(initramfs)
 
 $(vmlinux): $(linux_wrkdir)/.config $(CROSS_COMPILE)gcc
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
@@ -276,7 +286,7 @@ $(kernel-modules-install-stamp): $(linux_srcdir) $(buildroot_initramfs_sysroot) 
 		ARCH=riscv \
 		CROSS_COMPILE=$(CROSS_COMPILE) \
 		PATH=$(PATH) \
-		modules_install \
+		modules_install -j$(num_threads) \
 		INSTALL_MOD_PATH=$(buildroot_initramfs_sysroot)
 	touch $@
 	
@@ -309,7 +319,7 @@ $(fsbl_wrkdir_stamp): $(fsbl_srcdir) $(fsbl_patchdir)
 
 $(fsbl): $(libversion) $(fsbl_wrkdir_stamp) $(device_tree_blob)
 	rm -f $(fsbl_wrkdir)/fsbl/ux00_fsbl.dts
-	cp -f $(wrkdir)/riscvpc.dtb $(fsbl_wrkdir)/fsbl/ux00_fsbl.dtb
+	cp -f $(device_tree_blob) $(fsbl_wrkdir)/fsbl/ux00_fsbl.dtb
 	$(MAKE) -C $(fsbl_wrkdir) O=$(fsbl_wrkdir) CROSSCOMPILE=$(CROSS_COMPILE) all -j$(num_threads)
 	cp $(fsbl_wrkdir)/fsbl.bin $(fsbl)
 	
@@ -353,8 +363,11 @@ bootloaders: $(bootloaders-y)
 root-fs: $(rootfs)
 dtbs: ${device_tree_blob}
 
-.PHONY: clean distclean clean-linux
-clean:
+.PHONY: clean distclean clean-linux clean-workdir
+clean: clean-linux
+	rm -rf -- $(wrkdir)/$(DEVKIT) $(initramfs_uc)
+
+clean-workdir:
 	rm -rf -- $(wrkdir)
 
 clean-linux:
