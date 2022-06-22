@@ -123,20 +123,52 @@ deploy_dir := $(CURDIR)/deploy
 .PHONY: tftp-boot all-devkits dtbs_check dt_binding_check
 tftp-boot:
 	$(MAKE) clean-linux
-	$(MAKE) all DEVKIT=$(DEVKIT) 2>&1 | tee logs/tftp.log
+	$(MAKE) all W=1 DEVKIT=$(DEVKIT) 2>&1 | tee logs/tftp.log
 	cp $(fit) /srv/tftp
 	cp $(uboot_s_scr) /srv/tftp/$(tftp_boot_scr)
 	cp $(vmlinux_bin) /srv/tftp/$(DEVKIT)-vmlinux.bin
 	cp $(uimage) /srv/tftp/$(DEVKIT).uImage
 	cd $(linux_srcdir) && ./scripts/clang-tools/gen_compile_commands.py ${linux_wrkdir}
 
+random-config:
+	$(MAKE) clean-linux
+	mkdir -p $(linux_wrkdir)
+	cp $(CURDIR)/oldconfig $(linux_wrkdir)/.config
+	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
+		ARCH=riscv \
+		CROSS_COMPILE=$(CROSS_COMPILE) \
+		PATH=$(PATH) \
+		vmlinux -j$(num_threads)
+
+smatch:
+	$(MAKE) clean-linux
+	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
+		ARCH=riscv \
+		CROSS_COMPILE=$(CROSS_COMPILE) \
+		PATH=$(PATH) \
+		defconfig
+	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
+		ARCH=riscv \
+		CROSS_COMPILE=$(CROSS_COMPILE) \
+		PATH=$(PATH) \
+		C=2 CHECK=/home/conor/stuff/smatch/smatch \
+		$(FILE)
+
+coccicheck:
+	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
+		ARCH=riscv \
+		CROSS_COMPILE=$(CROSS_COMPILE) \
+		PATH=$(PATH) \
+		coccicheck \
+		MODE=report M=$(linux_srcdir)/$(DIR)
+
 all-devkits:
 	$(MAKE) clean-linux
-	$(MAKE) all DEVKIT=polarberry 2>&1 | tee logs/polarberry.log
+	$(MAKE) all W=1 DEVKIT=polarberry 2>&1 | tee logs/polarberry.log
 	$(MAKE) clean-linux
-	- $(MAKE) all DEVKIT=icicle-kit-es 2>&1 | tee logs/icicle.log
+	- $(MAKE) all W=1 DEVKIT=icicle-kit-es 2>&1 | tee logs/icicle.log
 	$(MAKE) clean-linux
-	$(MAKE) all DEVKIT=mainline 2>&1 | tee logs/icicle.log
+	$(MAKE) all W=1 DEVKIT=mainline 2>&1 | tee logs/icicle.log
 
 dtbs_check:
 	$(MAKE) clean-linux
