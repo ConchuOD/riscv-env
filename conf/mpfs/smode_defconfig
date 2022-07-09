@@ -29,4 +29,4 @@ CONFIG_DM_MTD=y
 CONFIG_DM_RESET=y
 CONFIG_SBI_V01=y
 
-CONFIG_BOOTCOMMAND="setenv fileaddr 0x90000000; load mmc 0:2 ${fileaddr} boot.scr; source ${fileaddr};"
+CONFIG_BOOTCOMMAND="setenv fileaddr 0x90000000; setenv autoload no; dhcp; setenv serverip 192.168.2.5; tftp ${fileaddr} mpfs-boot.scr; source ${fileaddr};"

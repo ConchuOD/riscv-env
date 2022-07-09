@@ -89,7 +89,9 @@ uboot_s_scr := $(buildroot_initramfs_wrkdir)/images/boot.scr
 
 opensbi_srcdir := $(srcdir)/opensbi
 opensbi_wrkdir := $(wrkdir)/opensbi
-opensbi := $(wrkdir)/fw_payload.bin
+opensbi := $(wrkdir)/$(DEVKIT)/fw_payload.bin
+second_srcdir := $(srcdir)/2ndboot
+secondboot := $(wrkdir)/.2ndboot
 
 openocd_srcdir := $(srcdir)/riscv-openocd
 openocd_wrkdir := $(wrkdir)/riscv-openocd
@@ -97,7 +99,8 @@ openocd := $(openocd_wrkdir)/src/openocd
 
 payload_generator_url := https://github.com/polarfire-soc/hart-software-services/releases/download/2021.11/hss-payload-generator.zip
 payload_generator_tarball := $(srcdir)/br-dl-dir/payload_generator.zip
-hss_payload_generator := /stuff/hss-payload-generator
+# hss_payload_generator := /stuff/hss-payload-generator
+hss_payload_generator := $(wrkdir)/hss-payload-generator
 hss_srcdir := $(srcdir)/hart-software-services
 hss_uboot_payload_bin := $(wrkdir)/payload.bin
 payload_config := $(confdir)/$(DEVKIT)/config.yaml
@@ -115,6 +118,7 @@ tftp_boot_scr ?= boot.scr
 
 bootloaders-$(FSBL_SUPPORT) += $(fsbl)
 bootloaders-$(OSBI_SUPPORT) += $(opensbi)
+bootloaders-$(SECOND_SUPPORT) += $(secondboot)
 bootloaders-$(HSS_SUPPORT) += $(hss_uboot_payload_bin)
 bootloaders-$(AMP_SUPPORT) += $(amp_example)
 
@@ -122,9 +126,9 @@ deploy_dir := $(CURDIR)/deploy
 
 .PHONY: tftp-boot all-devkits dtbs_check dt_binding_check
 tftp-boot:
-	$(MAKE) clean-linux
+	$(MAKE) clean-linux DEVKIT=$(DEVKIT)
 	$(MAKE) all W=1 DEVKIT=$(DEVKIT) 2>&1 | tee logs/tftp.log
-	cp $(fit) /srv/tftp
+	cp $(fit) /srv/tftp/$(DEVKIT)-fitImage.fit
 	cp $(uboot_s_scr) /srv/tftp/$(tftp_boot_scr)
 	cp $(vmlinux_bin) /srv/tftp/$(DEVKIT)-vmlinux.bin
 	cp $(uimage) /srv/tftp/$(DEVKIT).uImage
@@ -181,7 +185,7 @@ dtbs_check:
 		ARCH=riscv \
 		CROSS_COMPILE=$(CROSS_COMPILE) \
 		PATH=$(PATH) \
-		dtbs_check -j$(num_threads) 2>&1 | tee logs/dtbs_check.log
+		dtbs_check W=1 -j$(num_threads) 2>&1 | tee logs/dtbs_check.log
 
 dt_binding_check:
 	$(MAKE) clean-linux
@@ -232,7 +236,7 @@ $(buildroot_builddir_stamp): $(buildroot_srcdir) $(buildroot_patches)
 	rm -rf $(buildroot_rootfs_wrkdir)
 	mkdir -p $(buildroot_rootfs_wrkdir)
 
-$(buildroot_initramfs_wrkdir)/.config: $(buildroot_builddir_stamp) $(confdir)/initramfs.txt $(buildroot_rootfs_config) $(buildroot_initramfs_config) $(uboot_s_cfg) $(uboot_s_txt)
+$(buildroot_initramfs_wrkdir)/.config: $(buildroot_builddir_stamp) $(confdir)/initramfs.txt $(buildroot_initramfs_config) $(uboot_s_cfg) $(uboot_s_txt)
 	cp $(buildroot_initramfs_config) $(buildroot_initramfs_wrkdir)/.config
 	$(MAKE) -C $(buildroot_builddir) RISCV=$(RISCV) PATH=$(PATH) O=$(buildroot_initramfs_wrkdir) olddefconfig CROSS_COMPILE=$(CROSS_COMPILE) -j$(num_threads)
 
@@ -265,11 +269,12 @@ buildroot_rootfs_menuconfig: $(buildroot_rootfs_wrkdir)/.config $(buildroot_buil
 
 .PHONY: linux_cfg
 cfg: $(linux_wrkdir)/.config
-$(linux_wrkdir)/.config: $(linux_srcdir) $(CROSS_COMPILE)gcc
+$(linux_wrkdir)/.config: $(linux_srcdir) $(linux_defconfig) $(CROSS_COMPILE)gcc
 	mkdir -p $(dir $@)
-	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) ARCH=riscv $(linux_defconfig)
-ifeq (,$(filter rv%c,$(ISA)))
-	sed 's/^.*CONFIG_RISCV_ISA_C.*$$/CONFIG_RISCV_ISA_C=n/' -i $@
+ifneq (,$(findstring $(confdir),$(linux_defconfig)))
+	cp $(linux_defconfig) $@
+	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) ARCH=riscv olddefconfig
+else
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) ARCH=riscv $(linux_defconfig)
 endif
 ifeq ($(ISA),$(filter rv32%,$(ISA)))
@@ -368,8 +373,12 @@ $(opensbi): $(uboot_s) $(CROSS_COMPILE)gcc
 	mkdir -p $(opensbi_wrkdir)
 	mkdir -p $(dir $@)
 	$(MAKE) -C $(opensbi_srcdir) O=$(opensbi_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) \
-		PLATFORM=sifive/fu540 FW_PAYLOAD_PATH=$(uboot_s)
-	cp $(opensbi_wrkdir)/platform/sifive/fu540/firmware/fw_payload.bin $@
+		PLATFORM=generic FW_PAYLOAD_PATH=$(uboot_s)
+	cp $(opensbi_wrkdir)/platform/generic/firmware/fw_payload.bin $@
+
+$(secondboot): $(opensbi)
+	cd $(wrkdir) && $(second_srcdir)/build/fsz.sh $(opensbi)
+	touch $(secondboot)
 
 $(rootfs): $(buildroot_rootfs_ext)
 	cp $< $@

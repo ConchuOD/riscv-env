@@ -1,11 +1,10 @@
-# This is the s-mode U-Boot script for the {,lc-}mpfs development kits.
 
 # this assumes ${fileaddr} is already set!!
+
 setenv autoload no;
-setenv bootargs 'console=ttySIF0'
 dhcp;
 setenv serverip 192.168.2.5
-tftp ${fileaddr} mpfs-fitImage.fit
+tftpboot ${fileaddr} vision5-fitImage.fit
 bootm start ${fileaddr};
 bootm loados ${fileaddr};
 bootm ramdisk;

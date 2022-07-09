@@ -4,8 +4,8 @@
 
 setenv autoload no;
 dhcp;
-setenv serverip 10.205.160.53
-tftp ${fileaddr} fitImage.fit
+setenv serverip 192.168.2.5
+tftp ${fileaddr} lowmem-fitImage.fit
 bootm start ${fileaddr};
 bootm loados ${fileaddr};
 bootm ramdisk;
