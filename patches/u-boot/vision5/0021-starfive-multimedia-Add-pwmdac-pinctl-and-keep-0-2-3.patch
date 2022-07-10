@@ -1,0 +1,87 @@
+From 86872d3c4646e0fe4b14da4facabc0d2bc098a9a Mon Sep 17 00:00:00 2001
+From: SW Multimedia <sw.multimedia@starfivetech.com>
+Date: Fri, 10 Sep 2021 21:08:28 +0800
+Subject: [PATCH 21/34] starfive(multimedia): Add pwmdac pinctl and keep
+ 0,2,3,45 gpio for i2s to dts
+
+---
+ .../riscv/dts/jh7100-beaglev-starlight-a1.dts |  2 +-
+ arch/riscv/dts/jh7100-beaglev-starlight.dts   | 29 +++++++++++++++----
+ 2 files changed, 25 insertions(+), 6 deletions(-)
+
+diff --git a/arch/riscv/dts/jh7100-beaglev-starlight-a1.dts b/arch/riscv/dts/jh7100-beaglev-starlight-a1.dts
+index 65c0250095..9d7d250a1c 100644
+--- a/arch/riscv/dts/jh7100-beaglev-starlight-a1.dts
++++ b/arch/riscv/dts/jh7100-beaglev-starlight-a1.dts
+@@ -21,5 +21,5 @@
+ 
+ &gpio {
+ 	/* don't reset gpio mux for serial console and reset gpio */
+-	starfive,keep-gpiomux = <13 14 63>;
++	starfive,keep-gpiomux = <13 14 63 0 2 3 45>;
+ };
+diff --git a/arch/riscv/dts/jh7100-beaglev-starlight.dts b/arch/riscv/dts/jh7100-beaglev-starlight.dts
+index e17a5e4fee..bc1ba46d0b 100644
+--- a/arch/riscv/dts/jh7100-beaglev-starlight.dts
++++ b/arch/riscv/dts/jh7100-beaglev-starlight.dts
+@@ -94,7 +94,7 @@
+ 
+ &gpio {
+ 	/* don't reset gpio mux for serial console on uart3 */
+-	starfive,keep-gpiomux = <13 14>;
++	starfive,keep-gpiomux = <13 14 0 2 3 45>;
+ 
+ 	gmac_pins: gmac-0 {
+ 		gtxclk-pins {
+@@ -218,11 +218,11 @@
+ 				 <GPIOMUX(5,
+ 				  GPO_PWM_PAD_OUT_BIT1,
+ 				  GPO_PWM_PAD_OE_N_BIT1,
+-				  GPI_NONE)>,
+-				 <GPIOMUX(45,
+-				  GPO_PWM_PAD_OUT_BIT2,
+-				  GPO_PWM_PAD_OE_N_BIT2,
+ 				  GPI_NONE)>;
++				//  <GPIOMUX(45,
++				//   GPO_PWM_PAD_OUT_BIT2,
++				//   GPO_PWM_PAD_OE_N_BIT2,
++				//   GPI_NONE)>;
+ 			bias-disable;
+ 			drive-strength = <35>;
+ 			input-disable;
+@@ -473,6 +473,19 @@
+ 		};
+ 	};
+ 
++	pwmdac_pins: pwmdac_0 {
++		pwmdac_pins {
++			pinmux = <GPIOMUX(23, GPO_PWMDAC_LEFT_OUT,
++				  GPO_ENABLE, GPI_NONE)>,
++				  <GPIOMUX(24, GPO_PWMDAC_RIGHT_OUT,
++				  GPO_ENABLE, GPI_NONE)>;
++			bias-disable;
++			drive-strength = <35>;
++			input-disable;
++			input-schmitt-disable;
++			slew-rate = <0>;
++		};
++	};
+ };
+ 
+ &i2c0 {
+@@ -987,6 +1000,12 @@
+ 	status = "okay";
+ };
+ 
++&pwmdac {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pwmdac_pins>;
++	status = "okay";
++};
++
+ /* #include "codecs/sf_pdm.dtsi" */
+ /* #include "codecs/sf_spdif.dtsi" */
+ /* #include "codecs/sf_ac108.dtsi" */
+-- 
+2.37.0
+

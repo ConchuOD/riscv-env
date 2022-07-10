@@ -1,0 +1,33 @@
+From f82c4d2b2a5e9fe2569fe52b2456d2637816919f Mon Sep 17 00:00:00 2001
+From: jianlonghuang <jianlong.huang@starfivetech.com>
+Date: Mon, 7 Mar 2022 09:21:25 +0800
+Subject: [PATCH 33/34] resoved issue #636 sd compatibility
+
+Signed-off-by: jianlonghuang <jianlong.huang@starfivetech.com>
+---
+ board/starfive/jh7100/jh7100.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/board/starfive/jh7100/jh7100.c b/board/starfive/jh7100/jh7100.c
+index 84a6078cdb..bf59cc32dc 100644
+--- a/board/starfive/jh7100/jh7100.c
++++ b/board/starfive/jh7100/jh7100.c
+@@ -681,7 +681,7 @@ INIT_FUNC_DEF(sdio0)
+ 	 *the value of v is 0~31 which means
+ 	 *the delay_shift(sel) = 0.16 * sel (ns)
+ 	 */
+-	_SET_SYSCON_REG_register50_SCFG_sdio0_cclk_dlychain_sel(12);
++	_SET_SYSCON_REG_register50_SCFG_sdio0_cclk_dlychain_sel(0);
+ 
+ 	_SET_SYSCON_REG_register58_SCFG_funcshare_pad_ctrl_26(0x00c000c0);
+ 
+@@ -1532,4 +1532,4 @@ int board_init(void)
+ 	enable_caches();
+ 
+ 	return ret;
+-}
+\ No newline at end of file
++}
+-- 
+2.37.0
+

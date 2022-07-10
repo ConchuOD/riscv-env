@@ -1,0 +1,24 @@
+From 98bd4f515a24c67b900d1dfd6b78c5946e2bc473 Mon Sep 17 00:00:00 2001
+From: SW Multimedia <sw.multimedia@starfivetech.com>
+Date: Fri, 3 Sep 2021 21:13:13 +0800
+Subject: [PATCH 17/34] starfive: dtsi fix for dma2p
+
+---
+ arch/riscv/dts/jh7100.dtsi | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/riscv/dts/jh7100.dtsi b/arch/riscv/dts/jh7100.dtsi
+index e97d8a58fd..3a9cbdd34b 100644
+--- a/arch/riscv/dts/jh7100.dtsi
++++ b/arch/riscv/dts/jh7100.dtsi
+@@ -229,6 +229,7 @@
+ 			snps,priority = <0 1 2 3>;
+ 			snps,axi-max-burst-len = <128>;
+ 			status = "okay";
++			dma-coherent;
+ 		};
+ 
+ 		dma1p: dma-controller@10500000 {
+-- 
+2.37.0
+

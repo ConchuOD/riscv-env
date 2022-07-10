@@ -1,0 +1,189 @@
+From 9c28e9cc1f928d3031561bfd9c42ac7259690a2c Mon Sep 17 00:00:00 2001
+From: SW Multimedia <sw.multimedia@starfivetech.com>
+Date: Fri, 3 Sep 2021 21:15:33 +0800
+Subject: [PATCH 16/34] starfive: Add more audio codecs support in dts
+
+---
+ arch/riscv/dts/codecs/sf_ac108.dtsi         | 34 ++++++++++++++++++
+ arch/riscv/dts/codecs/sf_pdm.dtsi           | 17 +++++++++
+ arch/riscv/dts/codecs/sf_spdif.dtsi         | 16 +++++++++
+ arch/riscv/dts/codecs/sf_vad.dtsi           | 17 +++++++++
+ arch/riscv/dts/codecs/sf_wm8960.dtsi        | 38 +++++++++++++++++++++
+ arch/riscv/dts/jh7100-beaglev-starlight.dts |  6 ++++
+ 6 files changed, 128 insertions(+)
+ create mode 100644 arch/riscv/dts/codecs/sf_ac108.dtsi
+ create mode 100644 arch/riscv/dts/codecs/sf_pdm.dtsi
+ create mode 100644 arch/riscv/dts/codecs/sf_spdif.dtsi
+ create mode 100644 arch/riscv/dts/codecs/sf_vad.dtsi
+ create mode 100644 arch/riscv/dts/codecs/sf_wm8960.dtsi
+
+diff --git a/arch/riscv/dts/codecs/sf_ac108.dtsi b/arch/riscv/dts/codecs/sf_ac108.dtsi
+new file mode 100644
+index 0000000000..96dea59315
+--- /dev/null
++++ b/arch/riscv/dts/codecs/sf_ac108.dtsi
+@@ -0,0 +1,34 @@
++&sound {
++	/* i2s + ac108 */
++	simple-audio-card,dai-link@1 {
++		reg = <1>;
++		format = "i2s";
++		bitclock-master = <&sndcodec1>;
++		frame-master = <&sndcodec1>;
++
++		widgets =
++				"Microphone", "Mic Jack",
++				"Line", "Line In",
++				"Line", "Line Out",
++				"Speaker", "Speaker",
++				"Headphone", "Headphone Jack";
++		routing =
++				"Headphone Jack", "HP_L",
++				"Headphone Jack", "HP_R",
++				"Speaker", "SPK_LP",
++				"Speaker", "SPK_LN",
++				"LINPUT1", "Mic Jack",
++				"LINPUT3", "Mic Jack",
++				"RINPUT1", "Mic Jack",
++				"RINPUT2", "Mic Jack";
++
++		cpu {
++			sound-dai = <&i2sadc0>;
++		};
++		sndcodec1: codec {
++			sound-dai = <&ac108_a>;
++			clocks = <&ac108_mclk>;
++			clock-names = "mclk";
++		};
++	};
++};
+\ No newline at end of file
+diff --git a/arch/riscv/dts/codecs/sf_pdm.dtsi b/arch/riscv/dts/codecs/sf_pdm.dtsi
+new file mode 100644
+index 0000000000..db191ee3ce
+--- /dev/null
++++ b/arch/riscv/dts/codecs/sf_pdm.dtsi
+@@ -0,0 +1,17 @@
++&sound {
++	/* pdm + i2s */
++	simple-audio-card,dai-link@1 {
++		reg = <1>;
++		format = "i2s";
++		bitclock-master = <&sndcodec1>;
++		frame-master = <&sndcodec1>;
++
++		cpu {
++			sound-dai = <&i2sadc0>;
++		};
++
++		sndcodec1: codec {
++			sound-dai = <&pdm>;
++		};
++	};
++};
+diff --git a/arch/riscv/dts/codecs/sf_spdif.dtsi b/arch/riscv/dts/codecs/sf_spdif.dtsi
+new file mode 100644
+index 0000000000..a72802aeb2
+--- /dev/null
++++ b/arch/riscv/dts/codecs/sf_spdif.dtsi
+@@ -0,0 +1,16 @@
++&sound {
++	/* spdif */
++	simple-audio-card,dai-link@1 {
++		reg = <1>;
++		format = "left_j";
++		bitclock-master = <&sndcpu1>;
++		frame-master = <&sndcpu1>;
++
++		sndcpu1: cpu {
++			sound-dai = <&spdif0>;
++		};
++		codec {
++			sound-dai = <&spdif_transmitter>;
++		};
++	};
++};
+diff --git a/arch/riscv/dts/codecs/sf_vad.dtsi b/arch/riscv/dts/codecs/sf_vad.dtsi
+new file mode 100644
+index 0000000000..93c9153ad9
+--- /dev/null
++++ b/arch/riscv/dts/codecs/sf_vad.dtsi
+@@ -0,0 +1,17 @@
++&sound {
++	/* pdm + i2svad */
++	simple-audio-card,dai-link@1 {
++		reg = <1>;
++		format = "i2s";
++		bitclock-master = <&sndcodec1>;
++		frame-master = <&sndcodec1>;
++
++		cpu {
++			sound-dai = <&i2svad>;
++		};
++
++		sndcodec1: codec {
++			sound-dai = <&pdm>;
++		};
++	};
++};
+diff --git a/arch/riscv/dts/codecs/sf_wm8960.dtsi b/arch/riscv/dts/codecs/sf_wm8960.dtsi
+new file mode 100644
+index 0000000000..505146b322
+--- /dev/null
++++ b/arch/riscv/dts/codecs/sf_wm8960.dtsi
+@@ -0,0 +1,38 @@
++&sound{
++	/* i2s + wm8960 */
++	simple-audio-card,dai-link@1 {
++		reg = <1>;
++		status = "okay";
++		format = "i2s";
++		bitclock-master = <&sndcodec1>;
++		frame-master = <&sndcodec1>;
++
++		widgets =
++				"Microphone", "Mic Jack",
++				"Line", "Line In",
++				"Line", "Line Out",
++				"Speaker", "Speaker",
++				"Headphone", "Headphone Jack";
++		routing =
++				"Headphone Jack", "HP_L",
++				"Headphone Jack", "HP_R",
++				"Speaker", "SPK_LP",
++				"Speaker", "SPK_LN",
++				"LINPUT1", "Mic Jack",
++				"LINPUT3", "Mic Jack",
++				"RINPUT1", "Mic Jack",
++				"RINPUT2", "Mic Jack";
++		cpu0 {
++			sound-dai = <&i2sdac0>;
++		};
++		cpu1 {
++			sound-dai = <&i2sadc0>;
++		};
++
++		sndcodec1:codec {
++			sound-dai = <&wm8960>;
++			clocks = <&wm8960_mclk>;
++			clock-names = "mclk";
++		};
++	};
++};
+diff --git a/arch/riscv/dts/jh7100-beaglev-starlight.dts b/arch/riscv/dts/jh7100-beaglev-starlight.dts
+index c9920ef6e0..c27779d1c5 100644
+--- a/arch/riscv/dts/jh7100-beaglev-starlight.dts
++++ b/arch/riscv/dts/jh7100-beaglev-starlight.dts
+@@ -487,3 +487,9 @@
+ 	dr_mode = "host";
+ 	status = "okay";
+ };
++
++/* #include "codecs/sf_pdm.dtsi" */
++/* #include "codecs/sf_spdif.dtsi" */
++/* #include "codecs/sf_ac108.dtsi" */
++/* #include "codecs/sf_wm8960.dtsi" */
++/* #include "codecs/sf_vad.dtsi" */
+-- 
+2.37.0
+

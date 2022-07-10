@@ -1,0 +1,36 @@
+From d7335d5038c853c6a38e1890dfb5a73db5d33780 Mon Sep 17 00:00:00 2001
+From: Som Qin <som.qin@starfivetech.com>
+Date: Tue, 11 Jan 2022 20:38:22 +0800
+Subject: [PATCH 31/34] riscv: dts: starfive: Modify devicee tree for
+ VisionFive to support WM8960 daughter board
+
+Modify the gpio node to keep i2s pins state.
+
+Signed-off-by: Som Qin <som.qin@starfivetech.com>
+---
+ arch/riscv/dts/jh7100-visionfive.dts | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/riscv/dts/jh7100-visionfive.dts b/arch/riscv/dts/jh7100-visionfive.dts
+index 341911139b..bf228e3dea 100644
+--- a/arch/riscv/dts/jh7100-visionfive.dts
++++ b/arch/riscv/dts/jh7100-visionfive.dts
+@@ -20,7 +20,7 @@
+ 
+ &gpio {
+ 	/* don't reset gpio mux for serial console and reset gpio */
+-	starfive,keep-gpiomux = <13 14 63>;
++	starfive,keep-gpiomux = <13 14 63 0 2 3 45>;
+ };
+ 
+ &i2c0 {
+@@ -29,4 +29,4 @@
+ 		reg = <0x50>;
+ 		pagesize = <16>;
+ 	};
+-};
+\ No newline at end of file
++};
+-- 
+2.37.0
+

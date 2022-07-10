@@ -1,0 +1,34 @@
+From 221d6367caab10222635e713b945ec52d0a45959 Mon Sep 17 00:00:00 2001
+From: Andy Hu <andy.hu@starfivetech.com>
+Date: Fri, 7 Jan 2022 20:11:17 +0800
+Subject: [PATCH 30/34] dts: fixed libcamera report locaton warning about
+ imx219
+
+Signed-off-by: 123curry <curry.zhang@starfivetech.com>
+---
+ arch/riscv/dts/jh7100-beaglev-starlight.dts | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/riscv/dts/jh7100-beaglev-starlight.dts b/arch/riscv/dts/jh7100-beaglev-starlight.dts
+index bc1ba46d0b..ea2ad4a597 100644
+--- a/arch/riscv/dts/jh7100-beaglev-starlight.dts
++++ b/arch/riscv/dts/jh7100-beaglev-starlight.dts
+@@ -510,6 +510,7 @@
+ 		pinctrl-2 = <&sensor0_reset_high>;
+ 		//DOVDD-supply = <&v2v8>;
+ 		rotation = <0>;
++		orientation = <1>; //CAMERA_ORIENTATION_BACK
+ 
+ 		port {
+ 			/* CSI2 bus endpoint */
+@@ -650,6 +651,7 @@
+ 		pinctrl-2 = <&sensor1_reset_high>;
+ 		//DOVDD-supply = <&v2v8>;
+ 		rotation = <0>;
++		orientation = <0>; //CAMERA_ORIENTATION_FRONT
+ 
+ 		port {
+ 			/* CSI2 bus endpoint */
+-- 
+2.37.0
+

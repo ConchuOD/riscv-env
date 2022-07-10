@@ -1,0 +1,45 @@
+From 519e9766efacca442c41b51f31d4e592123ea790 Mon Sep 17 00:00:00 2001
+From: Wei Fu <wefu@redhat.com>
+Date: Sat, 7 Aug 2021 10:16:21 +0800
+Subject: [PATCH 03/34] riscv: add reset_misc function (__weak)
+
+Signed-off-by: Wei Fu <wefu@redhat.com>
+---
+ arch/riscv/include/asm/u-boot-riscv.h | 2 ++
+ arch/riscv/lib/reset.c                | 5 +++++
+ 2 files changed, 7 insertions(+)
+
+diff --git a/arch/riscv/include/asm/u-boot-riscv.h b/arch/riscv/include/asm/u-boot-riscv.h
+index 543a1688db..c122397bd7 100644
+--- a/arch/riscv/include/asm/u-boot-riscv.h
++++ b/arch/riscv/include/asm/u-boot-riscv.h
+@@ -20,4 +20,6 @@ void board_quiesce_devices(void);
+ int riscv_board_reserved_mem_fixup(void *fdt);
+ int riscv_fdt_copy_resv_mem_node(const void *src_fdt, void *dest_fdt);
+ 
++void reset_misc(void);
++
+ #endif	/* _U_BOOT_RISCV_H_ */
+diff --git a/arch/riscv/lib/reset.c b/arch/riscv/lib/reset.c
+index 8779c619cc..ab4c5671de 100644
+--- a/arch/riscv/lib/reset.c
++++ b/arch/riscv/lib/reset.c
+@@ -7,10 +7,15 @@
+ #include <command.h>
+ #include <hang.h>
+ 
++__weak void reset_misc(void)
++{
++}
++
+ int do_reset(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
+ {
+ 	printf("resetting ...\n");
+ 
++	reset_misc();
+ 	printf("reset not supported yet\n");
+ 	hang();
+ 
+-- 
+2.37.0
+

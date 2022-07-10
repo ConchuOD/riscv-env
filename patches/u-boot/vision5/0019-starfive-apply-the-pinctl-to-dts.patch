@@ -1,0 +1,729 @@
+From 5737e8a356c99d28ed0d26d12da525e7b8744573 Mon Sep 17 00:00:00 2001
+From: SW Multimedia <sw.multimedia@starfivetech.com>
+Date: Fri, 3 Sep 2021 22:00:36 +0800
+Subject: [PATCH 19/34] starfive: apply the pinctl to dts
+
+---
+ arch/riscv/dts/jh7100-beaglev-starlight.dts   | 323 +++++++++++++++++-
+ arch/riscv/dts/jh7100.dtsi                    |  12 +-
+ .../dt-bindings/pinctrl/pinctrl-starfive.h    | 274 +++++++++++++++
+ 3 files changed, 597 insertions(+), 12 deletions(-)
+ create mode 100644 include/dt-bindings/pinctrl/pinctrl-starfive.h
+
+diff --git a/arch/riscv/dts/jh7100-beaglev-starlight.dts b/arch/riscv/dts/jh7100-beaglev-starlight.dts
+index b7e9ac531d..73e2f89acf 100644
+--- a/arch/riscv/dts/jh7100-beaglev-starlight.dts
++++ b/arch/riscv/dts/jh7100-beaglev-starlight.dts
+@@ -5,6 +5,7 @@
+ #include "jh7100.dtsi"
+ #include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/leds/common.h>
++#include <dt-bindings/pinctrl/pinctrl-starfive.h>
+ #include <dt-bindings/starfive_fb.h>
+ 
+ / {
+@@ -85,13 +86,306 @@
+ 	};
+ };
+ 
++&gmac {
++	snps,reset-gpios = <&gpio 63 GPIO_ACTIVE_LOW>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&gmac_pins>;
++};
++
++&gpio {
++	/* don't reset gpio mux for serial console on uart3 */
++	starfive,keep-gpiomux = <13 14>;
++
++	gmac_pins: gmac-0 {
++		gtxclk-pins {
++			pins = <PAD_FUNC_SHARE(115)>;
++			bias-pull-up;
++			drive-strength = <35>;
++			input-enable;
++			input-schmitt-enable;
++			slew-rate = <0>;
++		};
++		miitxclk-pins {
++			pins = <PAD_FUNC_SHARE(116)>;
++			bias-pull-up;
++			drive-strength = <14>;
++			input-enable;
++			input-schmitt-disable;
++			slew-rate = <0>;
++		};
++		tx-pins {
++			pins = <PAD_FUNC_SHARE(117)>,
++			       <PAD_FUNC_SHARE(119)>,
++			       <PAD_FUNC_SHARE(120)>,
++			       <PAD_FUNC_SHARE(121)>,
++			       <PAD_FUNC_SHARE(122)>,
++			       <PAD_FUNC_SHARE(123)>,
++			       <PAD_FUNC_SHARE(124)>,
++			       <PAD_FUNC_SHARE(125)>,
++			       <PAD_FUNC_SHARE(126)>;
++			bias-pull-up;
++			drive-strength = <35>;
++			input-disable;
++			input-schmitt-disable;
++			slew-rate = <0>;
++		};
++		rxclk-pins {
++			pins = <PAD_FUNC_SHARE(127)>;
++			bias-pull-up;
++			drive-strength = <14>;
++			input-enable;
++			input-schmitt-disable;
++			slew-rate = <6>;
++		};
++		rxer-pins {
++			pins = <PAD_FUNC_SHARE(129)>;
++			bias-pull-up;
++			drive-strength = <14>;
++			input-enable;
++			input-schmitt-disable;
++			slew-rate = <0>;
++		};
++		rx-pins {
++			pins = <PAD_FUNC_SHARE(128)>,
++			       <PAD_FUNC_SHARE(130)>,
++			       <PAD_FUNC_SHARE(131)>,
++			       <PAD_FUNC_SHARE(132)>,
++			       <PAD_FUNC_SHARE(133)>,
++			       <PAD_FUNC_SHARE(134)>,
++			       <PAD_FUNC_SHARE(135)>,
++			       <PAD_FUNC_SHARE(136)>,
++			       <PAD_FUNC_SHARE(137)>,
++			       <PAD_FUNC_SHARE(138)>,
++			       <PAD_FUNC_SHARE(139)>,
++			       <PAD_FUNC_SHARE(140)>,
++			       <PAD_FUNC_SHARE(141)>;
++			bias-pull-up;
++			drive-strength = <14>;
++			input-enable;
++			input-schmitt-enable;
++			slew-rate = <0>;
++		};
++	};
++
++	i2c0_pins: i2c0-0 {
++		i2c-pins {
++			pinmux = <GPIOMUX(62, GPO_LOW,
++				  GPO_I2C0_PAD_SCK_OEN,
++				  GPI_I2C0_PAD_SCK_IN)>,
++				 <GPIOMUX(61, GPO_LOW,
++				  GPO_I2C0_PAD_SDA_OEN,
++				  GPI_I2C0_PAD_SDA_IN)>;
++			bias-disable; /* external pull-up */
++			input-enable;
++			input-schmitt-enable;
++		};
++	};
++
++	i2c1_pins: i2c1-0 {
++		i2c-pins {
++			pinmux = <GPIOMUX(47, GPO_LOW,
++				  GPO_I2C1_PAD_SCK_OEN,
++				  GPI_I2C1_PAD_SCK_IN)>,
++				 <GPIOMUX(48, GPO_LOW,
++				  GPO_I2C1_PAD_SDA_OEN,
++				  GPI_I2C1_PAD_SDA_IN)>;
++			bias-pull-up;
++			input-enable;
++			input-schmitt-enable;
++		};
++	};
++
++	i2c2_pins: i2c2-0 {
++		i2c-pins {
++			pinmux = <GPIOMUX(60, GPO_LOW,
++				  GPO_I2C2_PAD_SCK_OEN,
++				  GPI_I2C2_PAD_SCK_IN)>,
++				 <GPIOMUX(59, GPO_LOW,
++				  GPO_I2C2_PAD_SDA_OEN,
++				  GPI_I2C2_PAD_SDA_IN)>;
++			bias-disable; /* external pull-up */
++			input-enable;
++			input-schmitt-enable;
++		};
++	};
++
++	pwm_pins: pwm-0 {
++		pwm-pins {
++			pinmux = <GPIOMUX(7,
++				  GPO_PWM_PAD_OUT_BIT0,
++				  GPO_PWM_PAD_OE_N_BIT0,
++				  GPI_NONE)>,
++				 <GPIOMUX(5,
++				  GPO_PWM_PAD_OUT_BIT1,
++				  GPO_PWM_PAD_OE_N_BIT1,
++				  GPI_NONE)>,
++				 <GPIOMUX(45,
++				  GPO_PWM_PAD_OUT_BIT2,
++				  GPO_PWM_PAD_OE_N_BIT2,
++				  GPI_NONE)>;
++			bias-disable;
++			drive-strength = <35>;
++			input-disable;
++			input-schmitt-disable;
++			slew-rate = <0>;
++		};
++	};
++
++	sdio0_pins: sdio0-0 {
++		clk-pins {
++			pinmux = <GPIOMUX(54, GPO_SDIO0_PAD_CCLK_OUT,
++				  GPO_ENABLE, GPI_NONE)>;
++			bias-disable;
++			input-disable;
++			input-schmitt-disable;
++		};
++		sdio-pins {
++			pinmux = <GPIOMUX(55, GPO_LOW, GPO_DISABLE,
++				  GPI_SDIO0_PAD_CARD_DETECT_N)>,
++				 <GPIOMUX(53,
++				  GPO_SDIO0_PAD_CCMD_OUT,
++				  GPO_SDIO0_PAD_CCMD_OEN,
++				  GPI_SDIO0_PAD_CCMD_IN)>,
++				 <GPIOMUX(49,
++				  GPO_SDIO0_PAD_CDATA_OUT_BIT0,
++				  GPO_SDIO0_PAD_CDATA_OEN_BIT0,
++				  GPI_SDIO0_PAD_CDATA_IN_BIT0)>,
++				 <GPIOMUX(50,
++				  GPO_SDIO0_PAD_CDATA_OUT_BIT1,
++				  GPO_SDIO0_PAD_CDATA_OEN_BIT1,
++				  GPI_SDIO0_PAD_CDATA_IN_BIT1)>,
++				 <GPIOMUX(51,
++				  GPO_SDIO0_PAD_CDATA_OUT_BIT2,
++				  GPO_SDIO0_PAD_CDATA_OEN_BIT2,
++				  GPI_SDIO0_PAD_CDATA_IN_BIT2)>,
++				 <GPIOMUX(52,
++				  GPO_SDIO0_PAD_CDATA_OUT_BIT3,
++				  GPO_SDIO0_PAD_CDATA_OEN_BIT3,
++				  GPI_SDIO0_PAD_CDATA_IN_BIT3)>;
++			bias-pull-up;
++			input-enable;
++			input-schmitt-enable;
++		};
++	};
++
++	sdio1_pins: sdio1-0 {
++		clk-pins {
++			pinmux = <GPIOMUX(33, GPO_SDIO1_PAD_CCLK_OUT,
++				  GPO_ENABLE, GPI_NONE)>;
++			bias-disable;
++			input-disable;
++			input-schmitt-disable;
++		};
++		sdio-pins {
++			pinmux = <GPIOMUX(29,
++				  GPO_SDIO1_PAD_CCMD_OUT,
++				  GPO_SDIO1_PAD_CCMD_OEN,
++				  GPI_SDIO1_PAD_CCMD_IN)>,
++				 <GPIOMUX(36,
++				  GPO_SDIO1_PAD_CDATA_OUT_BIT0,
++				  GPO_SDIO1_PAD_CDATA_OEN_BIT0,
++				  GPI_SDIO1_PAD_CDATA_IN_BIT0)>,
++				 <GPIOMUX(30,
++				  GPO_SDIO1_PAD_CDATA_OUT_BIT1,
++				  GPO_SDIO1_PAD_CDATA_OEN_BIT1,
++				  GPI_SDIO1_PAD_CDATA_IN_BIT1)>,
++				 <GPIOMUX(34,
++				  GPO_SDIO1_PAD_CDATA_OUT_BIT2,
++				  GPO_SDIO1_PAD_CDATA_OEN_BIT2,
++				  GPI_SDIO1_PAD_CDATA_IN_BIT2)>,
++				 <GPIOMUX(31,
++				  GPO_SDIO1_PAD_CDATA_OUT_BIT3,
++				  GPO_SDIO1_PAD_CDATA_OEN_BIT3,
++				  GPI_SDIO1_PAD_CDATA_IN_BIT3)>;
++			bias-pull-up;
++			input-enable;
++			input-schmitt-enable;
++		};
++	};
++
++	spi2_pins: spi2-0 {
++		mosi-pin {
++			pinmux = <GPIOMUX(18, GPO_SPI2_PAD_TXD,
++				  GPO_ENABLE, GPI_NONE)>;
++			bias-disable;
++			input-disable;
++			input-schmitt-disable;
++		};
++		miso-pin {
++			pinmux = <GPIOMUX(16, GPO_LOW, GPO_DISABLE,
++				  GPI_SPI2_PAD_RXD)>;
++			bias-pull-up;
++			input-enable;
++			input-schmitt-enable;
++		};
++		sck-pin {
++			pinmux = <GPIOMUX(12, GPO_SPI2_PAD_SCK_OUT,
++				  GPO_ENABLE, GPI_NONE)>;
++			bias-disable;
++			input-disable;
++			input-schmitt-disable;
++		};
++		ss-pins {
++			pinmux = <GPIOMUX(15, GPO_SPI2_PAD_SS_0_N,
++				  GPO_ENABLE, GPI_NONE)>,
++				 <GPIOMUX(11, GPO_SPI2_PAD_SS_1_N,
++				  GPO_ENABLE, GPI_NONE)>;
++			bias-disable;
++			input-disable;
++			input-schmitt-disable;
++		};
++	};
++
++	uart0_pins: uart0-0 {
++		rx-pins {
++			pinmux = <GPIOMUX(40, GPO_LOW, GPO_DISABLE,
++				  GPI_UART0_PAD_SIN)>,
++				 <GPIOMUX(39, GPO_LOW, GPO_DISABLE,
++				  GPI_UART0_PAD_CTSN)>;
++			bias-pull-up;
++			input-enable;
++			input-schmitt-enable;
++		};
++		tx-pins {
++			pinmux = <GPIOMUX(41, GPO_UART0_PAD_SOUT,
++				  GPO_ENABLE, GPI_NONE)>,
++				 <GPIOMUX(42, GPO_UART0_PAD_RTSN,
++				  GPO_ENABLE, GPI_NONE)>;
++			bias-disable;
++			input-disable;
++			input-schmitt-disable;
++		};
++	};
++
++	uart3_pins: uart3-0 {
++		rx-pins {
++			pinmux = <GPIOMUX(13, GPO_LOW, GPO_DISABLE,
++				  GPI_UART3_PAD_SIN)>;
++			bias-pull-up;
++			drive-strength = <14>;
++			input-enable;
++			input-schmitt-enable;
++			slew-rate = <0>;
++		};
++		tx-pins {
++			pinmux = <GPIOMUX(14, GPO_UART3_PAD_SOUT,
++				  GPO_ENABLE, GPI_NONE)>;
++			bias-disable;
++			drive-strength = <35>;
++			input-disable;
++			input-schmitt-disable;
++			slew-rate = <0>;
++		};
++	};
++};
++
+ &i2c0 {
+ 	clock-frequency = <100000>;
+ 	i2c-sda-hold-time-ns = <300>;
+ 	i2c-sda-falling-time-ns = <500>;
+ 	i2c-scl-falling-time-ns = <500>;
+-	scl-gpio = <&gpio 62 GPIO_ACTIVE_HIGH>;
+-	sda-gpio = <&gpio 61 GPIO_ACTIVE_HIGH>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c0_pins>;
+ 	status = "okay";
+ 
+ 	imx219@10 {
+@@ -143,8 +437,8 @@
+ 	i2c-sda-hold-time-ns = <300>;
+ 	i2c-sda-falling-time-ns = <100>;
+ 	i2c-scl-falling-time-ns = <100>;
+-	scl-gpio = <&gpio 47 GPIO_ACTIVE_HIGH>;
+-	sda-gpio = <&gpio 48 GPIO_ACTIVE_HIGH>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c1_pins>;
+ 	status = "okay";
+ 
+ 	ac108_a: ac108@3b {
+@@ -215,8 +509,8 @@
+ 	i2c-sda-hold-time-ns = <300>;
+ 	i2c-sda-falling-time-ns = <500>;
+ 	i2c-scl-falling-time-ns = <500>;
+-	scl-gpio = <&gpio 60 GPIO_ACTIVE_HIGH>;
+-	sda-gpio = <&gpio 59 GPIO_ACTIVE_HIGH>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c2_pins>;
+ 	status = "okay";
+ 
+ 	seeed_plane_i2c@45 {
+@@ -261,6 +555,12 @@
+ 	clock-frequency = <27000000>;
+ };
+ 
++&ptc {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pwm_pins>;
++	status = "okay";
++};
++
+ &qspi {
+ 	nor_flash: nor-flash@0 {
+ 		compatible = "spi-flash";
+@@ -297,7 +597,8 @@
+ 	broken-cd;
+ 	bus-width = <4>;
+ 	cap-sd-highspeed;
+-	max-frequency = <10000000>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&sdio0_pins>;
+ 	status = "okay";
+ };
+ 
+@@ -311,6 +612,8 @@
+ 	max-frequency = <10000000>;
+ 	mmc-pwrseq = <&wifi_pwrseq>;
+ 	non-removable;
++	pinctrl-names = "default";
++	pinctrl-0 = <&sdio1_pins>;
+ 	status = "okay";
+ 
+ 	wifi@1 {
+@@ -552,6 +855,8 @@
+ };
+ 
+ &spi2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&spi2_pins>;
+ 	status = "okay";
+ 
+ 	spi_dev0: spi@0 {
+@@ -562,10 +867,14 @@
+ };
+ 
+ &uart0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart0_pins>;
+ 	status = "okay";
+ };
+ 
+ &uart3 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart3_pins>;
+ 	status = "okay";
+ };
+ 
+diff --git a/arch/riscv/dts/jh7100.dtsi b/arch/riscv/dts/jh7100.dtsi
+index c20231e99b..eaabebf5b5 100644
+--- a/arch/riscv/dts/jh7100.dtsi
++++ b/arch/riscv/dts/jh7100.dtsi
+@@ -262,15 +262,17 @@
+ 			status = "disabled";
+ 		};
+ 
+-		gpio: gpio@11910000 {
+-			compatible = "starfive,jh7100-gpio";
+-			reg = <0x0 0x11910000 0x0 0x10000>;
++		gpio: pinctrl@11910000 {
++			compatible = "starfive,jh7100-pinctrl";
++			reg = <0x0 0x11910000 0x0 0x10000>,
++			      <0x0 0x11858000 0x0 0x1000>;
++			reg-names = "gpio", "padctl";
+ 			clocks = <&clkgen JH7100_CLK_GPIO_APB>;
+ 			gpio-controller;
+ 			#gpio-cells = <2>;
++			interrupts = <32>;
+ 			interrupt-controller;
+ 			#interrupt-cells = <2>;
+-			interrupts = <32>;
+ 		};
+ 
+ 		i2c0: i2c@118b0000 {
+@@ -412,7 +414,7 @@
+ 			clocks = <&clkgen JH7100_CLK_PWM_APB>;
+ 			#pwm-cells = <3>;
+ 			sifive,npwm = <8>;
+-
++			status = "disabled";
+ 		};
+ 
+ 		qspi: spi@11860000 {
+diff --git a/include/dt-bindings/pinctrl/pinctrl-starfive.h b/include/dt-bindings/pinctrl/pinctrl-starfive.h
+new file mode 100644
+index 0000000000..3dd2a886b9
+--- /dev/null
++++ b/include/dt-bindings/pinctrl/pinctrl-starfive.h
+@@ -0,0 +1,274 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * Copyright (c) 2021 Emil Renner Berthing <kernel@esmil.dk>
++ */
++#ifndef _DT_BINDINGS_PINCTRL_STARFIVE_H
++#define _DT_BINDINGS_PINCTRL_STARFIVE_H
++
++#define PAD_GPIO_OFFSET		0
++#define PAD_FUNC_SHARE_OFFSET	64
++#define PAD_GPIO(x)		(PAD_GPIO_OFFSET + (x))
++#define PAD_FUNC_SHARE(x)	(PAD_FUNC_SHARE_OFFSET + (x))
++
++/*
++ * GPIOMUX bits:
++ *  | 31 - 24 | 23 - 16 | 15 - 8 |     7    |     6    |  5 - 0  |
++ *  |  dout   |  doen   |  din   | dout rev | doen rev | gpio nr |
++ *
++ * dout:     output signal
++ * doen:     output enable signal
++ * din:      optional input signal, 0xff = none
++ * dout rev: output signal reverse bit
++ * doen rev: output enable signal reverse bit
++ * gpio nr:  gpio number, 0 - 63
++ */
++#define GPIOMUX(n, dout, doen, din) ( \
++		(((dout) & 0x80000000) >> (31 - 7)) | (((dout) & 0xff) << 24) | \
++		(((doen) & 0x80000000) >> (31 - 6)) | (((doen) & 0xff) << 16) | \
++		(((din) & 0xff) << 8) | \
++		((n) & 0x3f))
++
++#define GPO_REVERSE				0x80000000
++
++#define GPO_LOW					0
++#define GPO_HIGH				1
++#define GPO_ENABLE				0
++#define GPO_DISABLE				1
++#define GPO_CLK_GMAC_PAPHYREF			2
++#define GPO_JTAG_TDO				3
++#define GPO_JTAG_TDO_OEN			4
++#define GPO_DMIC_CLK_OUT			5
++#define GPO_DSP_JTDOEN_PAD			6
++#define GPO_DSP_JTDO_PAD			7
++#define GPO_I2C0_PAD_SCK_OE			8
++#define GPO_I2C0_PAD_SCK_OEN			(GPO_I2C0_PAD_SCK_OE | GPO_REVERSE)
++#define GPO_I2C0_PAD_SDA_OE			9
++#define GPO_I2C0_PAD_SDA_OEN			(GPO_I2C0_PAD_SDA_OE | GPO_REVERSE)
++#define GPO_I2C1_PAD_SCK_OE			10
++#define GPO_I2C1_PAD_SCK_OEN			(GPO_I2C1_PAD_SCK_OE | GPO_REVERSE)
++#define GPO_I2C1_PAD_SDA_OE			11
++#define GPO_I2C1_PAD_SDA_OEN			(GPO_I2C1_PAD_SDA_OE | GPO_REVERSE)
++#define GPO_I2C2_PAD_SCK_OE			12
++#define GPO_I2C2_PAD_SCK_OEN			(GPO_I2C2_PAD_SCK_OE | GPO_REVERSE)
++#define GPO_I2C2_PAD_SDA_OE			13
++#define GPO_I2C2_PAD_SDA_OEN			(GPO_I2C2_PAD_SDA_OE | GPO_REVERSE)
++#define GPO_I2C3_PAD_SCK_OE			14
++#define GPO_I2C3_PAD_SCK_OEN			(GPO_I2C3_PAD_SCK_OE | GPO_REVERSE)
++#define GPO_I2C3_PAD_SDA_OE			15
++#define GPO_I2C3_PAD_SDA_OEN			(GPO_I2C3_PAD_SDA_OE | GPO_REVERSE)
++#define GPO_I2SRX_BCLK_OUT			16
++#define GPO_I2SRX_BCLK_OUT_OEN			17
++#define GPO_I2SRX_LRCK_OUT			18
++#define GPO_I2SRX_LRCK_OUT_OEN			19
++#define GPO_I2SRX_MCLK_OUT			20
++#define GPO_I2STX_BCLK_OUT			21
++#define GPO_I2STX_BCLK_OUT_OEN			22
++#define GPO_I2STX_LRCK_OUT			23
++#define GPO_I2STX_LRCK_OUT_OEN			24
++#define GPO_I2STX_MCLK_OUT			25
++#define GPO_I2STX_SDOUT0			26
++#define GPO_I2STX_SDOUT1			27
++#define GPO_LCD_PAD_CSM_N			28
++#define GPO_PWM_PAD_OE_N_BIT0			29
++#define GPO_PWM_PAD_OE_N_BIT1			30
++#define GPO_PWM_PAD_OE_N_BIT2			31
++#define GPO_PWM_PAD_OE_N_BIT3			32
++#define GPO_PWM_PAD_OE_N_BIT4			33
++#define GPO_PWM_PAD_OE_N_BIT5			34
++#define GPO_PWM_PAD_OE_N_BIT6			35
++#define GPO_PWM_PAD_OE_N_BIT7			36
++#define GPO_PWM_PAD_OUT_BIT0			37
++#define GPO_PWM_PAD_OUT_BIT1			38
++#define GPO_PWM_PAD_OUT_BIT2			39
++#define GPO_PWM_PAD_OUT_BIT3			40
++#define GPO_PWM_PAD_OUT_BIT4			41
++#define GPO_PWM_PAD_OUT_BIT5			42
++#define GPO_PWM_PAD_OUT_BIT6			43
++#define GPO_PWM_PAD_OUT_BIT7			44
++#define GPO_PWMDAC_LEFT_OUT			45
++#define GPO_PWMDAC_RIGHT_OUT			46
++#define GPO_QSPI_CSN1_OUT			47
++#define GPO_QSPI_CSN2_OUT			48
++#define GPO_QSPI_CSN3_OUT			49
++#define GPO_REGISTER23_SCFG_CMSENSOR_RST0	50
++#define GPO_REGISTER23_SCFG_CMSENSOR_RST1	51
++#define GPO_REGISTER32_SCFG_GMAC_PHY_RSTN	52
++#define GPO_SDIO0_PAD_CARD_POWER_EN		53
++#define GPO_SDIO0_PAD_CCLK_OUT			54
++#define GPO_SDIO0_PAD_CCMD_OE			55
++#define GPO_SDIO0_PAD_CCMD_OEN			(GPO_SDIO0_PAD_CCMD_OE | GPO_REVERSE)
++#define GPO_SDIO0_PAD_CCMD_OUT			56
++#define GPO_SDIO0_PAD_CDATA_OE_BIT0		57
++#define GPO_SDIO0_PAD_CDATA_OEN_BIT0		(GPO_SDIO0_PAD_CDATA_OE_BIT0 | GPO_REVERSE)
++#define GPO_SDIO0_PAD_CDATA_OE_BIT1		58
++#define GPO_SDIO0_PAD_CDATA_OEN_BIT1		(GPO_SDIO0_PAD_CDATA_OE_BIT1 | GPO_REVERSE)
++#define GPO_SDIO0_PAD_CDATA_OE_BIT2		59
++#define GPO_SDIO0_PAD_CDATA_OEN_BIT2		(GPO_SDIO0_PAD_CDATA_OE_BIT2 | GPO_REVERSE)
++#define GPO_SDIO0_PAD_CDATA_OE_BIT3		60
++#define GPO_SDIO0_PAD_CDATA_OEN_BIT3		(GPO_SDIO0_PAD_CDATA_OE_BIT3 | GPO_REVERSE)
++#define GPO_SDIO0_PAD_CDATA_OE_BIT4		61
++#define GPO_SDIO0_PAD_CDATA_OEN_BIT4		(GPO_SDIO0_PAD_CDATA_OE_BIT4 | GPO_REVERSE)
++#define GPO_SDIO0_PAD_CDATA_OE_BIT5		62
++#define GPO_SDIO0_PAD_CDATA_OEN_BIT5		(GPO_SDIO0_PAD_CDATA_OE_BIT5 | GPO_REVERSE)
++#define GPO_SDIO0_PAD_CDATA_OE_BIT6		63
++#define GPO_SDIO0_PAD_CDATA_OEN_BIT6		(GPO_SDIO0_PAD_CDATA_OE_BIT6 | GPO_REVERSE)
++#define GPO_SDIO0_PAD_CDATA_OE_BIT7		64
++#define GPO_SDIO0_PAD_CDATA_OEN_BIT7		(GPO_SDIO0_PAD_CDATA_OE_BIT7 | GPO_REVERSE)
++#define GPO_SDIO0_PAD_CDATA_OUT_BIT0		65
++#define GPO_SDIO0_PAD_CDATA_OUT_BIT1		66
++#define GPO_SDIO0_PAD_CDATA_OUT_BIT2		67
++#define GPO_SDIO0_PAD_CDATA_OUT_BIT3		68
++#define GPO_SDIO0_PAD_CDATA_OUT_BIT4		69
++#define GPO_SDIO0_PAD_CDATA_OUT_BIT5		70
++#define GPO_SDIO0_PAD_CDATA_OUT_BIT6		71
++#define GPO_SDIO0_PAD_CDATA_OUT_BIT7		72
++#define GPO_SDIO0_PAD_RST_N			73
++#define GPO_SDIO1_PAD_CARD_POWER_EN		74
++#define GPO_SDIO1_PAD_CCLK_OUT			75
++#define GPO_SDIO1_PAD_CCMD_OE			76
++#define GPO_SDIO1_PAD_CCMD_OEN			(GPO_SDIO1_PAD_CCMD_OE | GPO_REVERSE)
++#define GPO_SDIO1_PAD_CCMD_OUT			77
++#define GPO_SDIO1_PAD_CDATA_OE_BIT0		78
++#define GPO_SDIO1_PAD_CDATA_OEN_BIT0		(GPO_SDIO1_PAD_CDATA_OE_BIT0 | GPO_REVERSE)
++#define GPO_SDIO1_PAD_CDATA_OE_BIT1		79
++#define GPO_SDIO1_PAD_CDATA_OEN_BIT1		(GPO_SDIO1_PAD_CDATA_OE_BIT1 | GPO_REVERSE)
++#define GPO_SDIO1_PAD_CDATA_OE_BIT2		80
++#define GPO_SDIO1_PAD_CDATA_OEN_BIT2		(GPO_SDIO1_PAD_CDATA_OE_BIT2 | GPO_REVERSE)
++#define GPO_SDIO1_PAD_CDATA_OE_BIT3		81
++#define GPO_SDIO1_PAD_CDATA_OEN_BIT3		(GPO_SDIO1_PAD_CDATA_OE_BIT3 | GPO_REVERSE)
++#define GPO_SDIO1_PAD_CDATA_OE_BIT4		82
++#define GPO_SDIO1_PAD_CDATA_OEN_BIT4		(GPO_SDIO1_PAD_CDATA_OE_BIT4 | GPO_REVERSE)
++#define GPO_SDIO1_PAD_CDATA_OE_BIT5		83
++#define GPO_SDIO1_PAD_CDATA_OEN_BIT5		(GPO_SDIO1_PAD_CDATA_OE_BIT5 | GPO_REVERSE)
++#define GPO_SDIO1_PAD_CDATA_OE_BIT6		84
++#define GPO_SDIO1_PAD_CDATA_OEN_BIT6		(GPO_SDIO1_PAD_CDATA_OE_BIT6 | GPO_REVERSE)
++#define GPO_SDIO1_PAD_CDATA_OE_BIT7		85
++#define GPO_SDIO1_PAD_CDATA_OEN_BIT7		(GPO_SDIO1_PAD_CDATA_OE_BIT7 | GPO_REVERSE)
++#define GPO_SDIO1_PAD_CDATA_OUT_BIT0		86
++#define GPO_SDIO1_PAD_CDATA_OUT_BIT1		87
++#define GPO_SDIO1_PAD_CDATA_OUT_BIT2		88
++#define GPO_SDIO1_PAD_CDATA_OUT_BIT3		89
++#define GPO_SDIO1_PAD_CDATA_OUT_BIT4		90
++#define GPO_SDIO1_PAD_CDATA_OUT_BIT5		91
++#define GPO_SDIO1_PAD_CDATA_OUT_BIT6		92
++#define GPO_SDIO1_PAD_CDATA_OUT_BIT7		93
++#define GPO_SDIO1_PAD_RST_N			94
++#define GPO_SPDIF_TX_SDOUT			95
++#define GPO_SPDIF_TX_SDOUT_OEN			96
++#define GPO_SPI0_PAD_OE_N			97
++#define GPO_SPI0_PAD_SCK_OUT			98
++#define GPO_SPI0_PAD_SS_0_N			99
++#define GPO_SPI0_PAD_SS_1_N			100
++#define GPO_SPI0_PAD_TXD			101
++#define GPO_SPI1_PAD_OE_N			102
++#define GPO_SPI1_PAD_SCK_OUT			103
++#define GPO_SPI1_PAD_SS_0_N			104
++#define GPO_SPI1_PAD_SS_1_N			105
++#define GPO_SPI1_PAD_TXD			106
++#define GPO_SPI2_PAD_OE_N			107
++#define GPO_SPI2_PAD_SCK_OUT			108
++#define GPO_SPI2_PAD_SS_0_N			109
++#define GPO_SPI2_PAD_SS_1_N			110
++#define GPO_SPI2_PAD_TXD			111
++#define GPO_SPI2AHB_PAD_OE_N_BIT0		112
++#define GPO_SPI2AHB_PAD_OE_N_BIT1		113
++#define GPO_SPI2AHB_PAD_OE_N_BIT2		114
++#define GPO_SPI2AHB_PAD_OE_N_BIT3		115
++#define GPO_SPI2AHB_PAD_TXD_BIT0		116
++#define GPO_SPI2AHB_PAD_TXD_BIT1		117
++#define GPO_SPI2AHB_PAD_TXD_BIT2		118
++#define GPO_SPI2AHB_PAD_TXD_BIT3		119
++#define GPO_SPI3_PAD_OE_N			120
++#define GPO_SPI3_PAD_SCK_OUT			121
++#define GPO_SPI3_PAD_SS_0_N			122
++#define GPO_SPI3_PAD_SS_1_N			123
++#define GPO_SPI3_PAD_TXD			124
++#define GPO_UART0_PAD_DTRN			125
++#define GPO_UART0_PAD_RTSN			126
++#define GPO_UART0_PAD_SOUT			127
++#define GPO_UART1_PAD_SOUT			128
++#define GPO_UART2_PAD_DTR_N			129
++#define GPO_UART2_PAD_RTS_N			130
++#define GPO_UART2_PAD_SOUT			131
++#define GPO_UART3_PAD_SOUT			132
++#define GPO_USB_DRV_BUS				133
++
++#define GPI_NONE				0xffffffff
++
++#define GPI_CPU_JTAG_TCK			0
++#define GPI_CPU_JTAG_TDI			1
++#define GPI_CPU_JTAG_TMS			2
++#define GPI_CPU_JTAG_TRST			3
++#define GPI_DMIC_SDIN_BIT0			4
++#define GPI_DMIC_SDIN_BIT1			5
++#define GPI_DSP_JTCK_PAD			6
++#define GPI_DSP_JTDI_PAD			7
++#define GPI_DSP_JTMS_PAD			8
++#define GPI_DSP_TRST_PAD			9
++#define GPI_I2C0_PAD_SCK_IN			10
++#define GPI_I2C0_PAD_SDA_IN			11
++#define GPI_I2C1_PAD_SCK_IN			12
++#define GPI_I2C1_PAD_SDA_IN			13
++#define GPI_I2C2_PAD_SCK_IN			14
++#define GPI_I2C2_PAD_SDA_IN			15
++#define GPI_I2C3_PAD_SCK_IN			16
++#define GPI_I2C3_PAD_SDA_IN			17
++#define GPI_I2SRX_BCLK_IN			18
++#define GPI_I2SRX_LRCK_IN			19
++#define GPI_I2SRX_SDIN_BIT0			20
++#define GPI_I2SRX_SDIN_BIT1			21
++#define GPI_I2SRX_SDIN_BIT2			22
++#define GPI_I2STX_BCLK_IN			23
++#define GPI_I2STX_LRCK_IN			24
++#define GPI_SDIO0_PAD_CARD_DETECT_N		25
++#define GPI_SDIO0_PAD_CARD_WRITE_PRT		26
++#define GPI_SDIO0_PAD_CCMD_IN			27
++#define GPI_SDIO0_PAD_CDATA_IN_BIT0		28
++#define GPI_SDIO0_PAD_CDATA_IN_BIT1		29
++#define GPI_SDIO0_PAD_CDATA_IN_BIT2		30
++#define GPI_SDIO0_PAD_CDATA_IN_BIT3		31
++#define GPI_SDIO0_PAD_CDATA_IN_BIT4		32
++#define GPI_SDIO0_PAD_CDATA_IN_BIT5		33
++#define GPI_SDIO0_PAD_CDATA_IN_BIT6		34
++#define GPI_SDIO0_PAD_CDATA_IN_BIT7		35
++#define GPI_SDIO1_PAD_CARD_DETECT_N		36
++#define GPI_SDIO1_PAD_CARD_WRITE_PRT		37
++#define GPI_SDIO1_PAD_CCMD_IN			38
++#define GPI_SDIO1_PAD_CDATA_IN_BIT0		39
++#define GPI_SDIO1_PAD_CDATA_IN_BIT1		40
++#define GPI_SDIO1_PAD_CDATA_IN_BIT2		41
++#define GPI_SDIO1_PAD_CDATA_IN_BIT3		42
++#define GPI_SDIO1_PAD_CDATA_IN_BIT4		43
++#define GPI_SDIO1_PAD_CDATA_IN_BIT5		44
++#define GPI_SDIO1_PAD_CDATA_IN_BIT6		45
++#define GPI_SDIO1_PAD_CDATA_IN_BIT7		46
++#define GPI_SPDIF_RX_SDIN			47
++#define GPI_SPI0_PAD_RXD			48
++#define GPI_SPI0_PAD_SS_IN_N			49
++#define GPI_SPI1_PAD_RXD			50
++#define GPI_SPI1_PAD_SS_IN_N			51
++#define GPI_SPI2_PAD_RXD			52
++#define GPI_SPI2_PAD_SS_IN_N			53
++#define GPI_SPI2AHB_PAD_RXD_BIT0		54
++#define GPI_SPI2AHB_PAD_RXD_BIT1		55
++#define GPI_SPI2AHB_PAD_RXD_BIT2		56
++#define GPI_SPI2AHB_PAD_RXD_BIT3		57
++#define GPI_SPI2AHB_PAD_SS_N			58
++#define GPI_SPI2AHB_SLV_SCLKIN			59
++#define GPI_SPI3_PAD_RXD			60
++#define GPI_SPI3_PAD_SS_IN_N			61
++#define GPI_UART0_PAD_CTSN			62
++#define GPI_UART0_PAD_DCDN			63
++#define GPI_UART0_PAD_DSRN			64
++#define GPI_UART0_PAD_RIN			65
++#define GPI_UART0_PAD_SIN			66
++#define GPI_UART1_PAD_SIN			67
++#define GPI_UART2_PAD_CTS_N			68
++#define GPI_UART2_PAD_DCD_N			69
++#define GPI_UART2_PAD_DSR_N			70
++#define GPI_UART2_PAD_RI_N			71
++#define GPI_UART2_PAD_SIN			72
++#define GPI_UART3_PAD_SIN			73
++#define GPI_USB_OVER_CURRENT			74
++
++#endif
+-- 
+2.37.0
+

@@ -1,0 +1,42 @@
+From 6c5823bee0434a90ca25c3b45dad292eabbf41f4 Mon Sep 17 00:00:00 2001
+From: "Som.Qin" <som.qin@starfivetech.com>
+Date: Wed, 5 Jan 2022 09:52:02 +0800
+Subject: [PATCH 28/34] starfive: apply VisionFive board changes
+
+The VisionFive dts is base on Starlight dts, and the difference of
+rst gpio, eeprom and gmac should be applied.
+
+Signed-off-by: Som.Qin <som.qin@starfivetech.com>
+---
+ arch/riscv/dts/jh7100-visionfive.dts | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/arch/riscv/dts/jh7100-visionfive.dts b/arch/riscv/dts/jh7100-visionfive.dts
+index 33e51950b7..341911139b 100644
+--- a/arch/riscv/dts/jh7100-visionfive.dts
++++ b/arch/riscv/dts/jh7100-visionfive.dts
+@@ -6,6 +6,21 @@
+ 
+ / {
+ 	model = "StarFive VisionFive V1";
++
++	gpio-restart {
++		compatible = "gpio-restart";
++		gpios = <&gpio 63 GPIO_ACTIVE_HIGH>;
++		priority = <256>;
++	};
++};
++
++&gmac {
++	/delete-property/ snps,reset-gpios;
++};
++
++&gpio {
++	/* don't reset gpio mux for serial console and reset gpio */
++	starfive,keep-gpiomux = <13 14 63>;
+ };
+ 
+ &i2c0 {
+-- 
+2.37.0
+

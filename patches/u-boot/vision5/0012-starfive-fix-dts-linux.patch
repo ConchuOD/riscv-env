@@ -1,0 +1,105 @@
+From 4239517678be9bc65ca2d90420bcb7b95182899d Mon Sep 17 00:00:00 2001
+From: Wei Fu <wefu@redhat.com>
+Date: Mon, 23 Aug 2021 15:30:02 +0800
+Subject: [PATCH 12/34] starfive: fix dts(linux)
+
+1, ccache
+2, mmc
+    This patch adds the necessary info for mmc driver:
+    bus-width = <4>;
+    max-frequency = <?0000000>;
+
+3, uart0(console)
+4, SPI Nor Flash
+5, Switch dtb to linux dts
+---
+ arch/riscv/dts/jh7100.dtsi                        | 15 +++++++++++----
+ configs/starfive_jh7100_starlight_smode_defconfig |  2 +-
+ 2 files changed, 12 insertions(+), 5 deletions(-)
+
+diff --git a/arch/riscv/dts/jh7100.dtsi b/arch/riscv/dts/jh7100.dtsi
+index e21ab822dc..c3fb014c85 100644
+--- a/arch/riscv/dts/jh7100.dtsi
++++ b/arch/riscv/dts/jh7100.dtsi
+@@ -91,16 +91,19 @@
+ 
+ 		ccache: cache-controller@2010000 {
+ 			cache-block-size = <64>;
++			cache-line-size = <64>;
+ 			cache-level = <2>;
+ 			cache-sets = <2048>;
+ 			cache-size = <2097152>;
+ 			cache-unified;
+-			compatible = "sifive,fu540-c000-ccache", "starfive,ccache0", "cache";
++			#size-cells = <2>;
++			compatible = "sifive,fu540-c000-ccache", "sifive,fu740-c000-ccache", "starfive,ccache0", "cache";
+ 			interrupts = <128 131 129 130>;
+ 			/*next-level-cache = <&L40 &L36>;*/
+ 			reg = <0x0 0x2010000 0x0 0x1000>,
+ 			      <0x0 0x8000000 0x0 0x2000000>;
+ 			reg-names = "control", "sideband";
++			ranges = <0x0 0x0 0x0 0x80000000 0x8 0x0>;
+ 		};
+ 
+ 		dtim: dtim@1000000 {
+@@ -197,7 +200,7 @@
+ 		};
+ 
+ 		uart3: serial@12440000 {
+-			compatible = "snps,dw-apb-uart";
++			compatible = "snps,dw-apb-uart", "starfive,uart0";
+ 			interrupts = <73>;
+ 			reg = <0x0 0x12440000 0x0 0x10000>;
+ 			reg-io-width = <4>;
+@@ -411,7 +414,7 @@
+ 		};
+ 
+ 		qspi: spi@11860000 {
+-			compatible = "cdns,qspi-nor";
++			compatible = "cadence,qspi","cdns,qspi-nor";
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 			reg = <0x0 0x11860000 0x0 0x10000>,
+@@ -421,7 +424,7 @@
+ 			cdns,fifo-depth = <256>;
+ 			cdns,fifo-width = <4>;
+ 			cdns,trigger-address = <0x0>;
+-			status = "disabled";
++			status = "okay";
+ 			spi-max-frequency = <250000000>;
+ 		};
+ 
+@@ -505,6 +508,8 @@
+ 			data-addr = <0>;
+ 			fifo-depth = <32>;
+ 			fifo-watermark-aligned;
++			bus-width = <4>;
++			max-frequency = <10000000>;
+ 			status = "disabled";
+ 		};
+ 
+@@ -519,6 +524,8 @@
+ 			data-addr = <0>;
+ 			fifo-depth = <32>;
+ 			fifo-watermark-aligned;
++			bus-width = <4>;
++			max-frequency = <50000000>;
+ 			status = "disabled";
+ 		};
+ 
+diff --git a/configs/starfive_jh7100_starlight_smode_defconfig b/configs/starfive_jh7100_starlight_smode_defconfig
+index 174a259073..68284497f7 100644
+--- a/configs/starfive_jh7100_starlight_smode_defconfig
++++ b/configs/starfive_jh7100_starlight_smode_defconfig
+@@ -7,7 +7,7 @@ CONFIG_ENV_SIZE=0x1f000
+ CONFIG_ENV_SECT_SIZE=0x1000
+ CONFIG_SYS_MALLOC_LEN=0x800000
+ # CONFIG_DM_GPIO is not set
+-CONFIG_DEFAULT_DEVICE_TREE="starfive_jh7100_starlight"
++CONFIG_DEFAULT_DEVICE_TREE="jh7100-beaglev-starlight"
+ CONFIG_IDENT_STRING="StarFive"
+ CONFIG_SYS_CLK_FREQ=1000000000
+ CONFIG_TARGET_STARFIVE_JH7100=y
+-- 
+2.37.0
+

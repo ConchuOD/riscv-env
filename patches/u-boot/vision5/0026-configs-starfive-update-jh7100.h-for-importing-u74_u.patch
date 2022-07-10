@@ -1,0 +1,37 @@
+From 0d204477f47f6afeb91045ed6cb38ac1f8995010 Mon Sep 17 00:00:00 2001
+From: Jianlong Huang <jianlong.huang@starfivetech.com>
+Date: Wed, 24 Nov 2021 01:03:31 +0800
+Subject: [PATCH 26/34] configs: starfive: update jh7100.h for importing
+ u74_uEnv.txt for testing
+
+Signed-off-by: Jianlong Huang <jianlong.huang@starfivetech.com>
+---
+ include/configs/starfive-jh7100.h | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/include/configs/starfive-jh7100.h b/include/configs/starfive-jh7100.h
+index 3f8391d9ad..747239cbec 100644
+--- a/include/configs/starfive-jh7100.h
++++ b/include/configs/starfive-jh7100.h
+@@ -61,9 +61,18 @@
+ 	"mmcdev=0\0" \
+ 	"mmcpart=3\0"
+ 
++#define STARLIGHT_TEST_BOOTENV \
++	"testpart=0:1\0" \
++	"testenv=u74_uEnv.txt\0" \
++	"mmcsetup=mmc part\0" \
++	"fdtsetup=fdt addr ${fdtcontroladdr}\0" \
++	"fatenv=fatload mmc ${testpart} ${loadaddr} ${testenv};" \
++		"env import -t ${loadaddr} ${filesize}\0"
++
+ #define CONFIG_EXTRA_ENV_SETTINGS \
+ 	STARLIGHT_FEDORA_BOOTENV \
+ 	"loadaddr=0xa0000000\0" \
++	STARLIGHT_TEST_BOOTENV \
+ 	"loadbootenv=fatload mmc ${mmcdev} ${loadaddr} ${bootenv}\0" \
+ 	"ext4bootenv=ext4load mmc ${bootpart} ${loadaddr} ${bootdir}/${bootenv}\0" \
+ 	"importbootenv=echo Importing environment from mmc${mmcdev} ...; " \
+-- 
+2.37.0
+

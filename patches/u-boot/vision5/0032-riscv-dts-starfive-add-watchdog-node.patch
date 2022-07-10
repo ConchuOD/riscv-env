@@ -1,0 +1,38 @@
+From 44b765bf63a42c5cb0bd6245ad366caaec5c76ae Mon Sep 17 00:00:00 2001
+From: Hal Feng <hal.feng@starfivetech.com>
+Date: Thu, 13 Jan 2022 15:31:14 +0800
+Subject: [PATCH 32/34] riscv: dts: starfive: add watchdog node
+
+Signed-off-by: Samin Guo <samin.guo@starfivetech.com>
+---
+ arch/riscv/dts/jh7100.dtsi | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/arch/riscv/dts/jh7100.dtsi b/arch/riscv/dts/jh7100.dtsi
+index 953b35e099..7489b53ea8 100644
+--- a/arch/riscv/dts/jh7100.dtsi
++++ b/arch/riscv/dts/jh7100.dtsi
+@@ -136,6 +136,20 @@
+ 			reg-names = "control";
+ 		};
+ 
++		wdog: wdog@12480000 {
++			compatible = "starfive,si5-wdt";
++			reg = <0x0 0x12480000 0x0 0x10000>;
++			interrupt-parent = <&plic>;
++			interrupts = <80>;
++			interrupt-names = "wdog";
++			clocks = <&clkgen JH7100_CLK_WDT_CORE>,
++				<&clkgen JH7100_CLK_WDTIMER_APB>;
++			clock-names = "core_clk", "apb_clk";
++			clock-frequency = <50000000>;
++			timeout-sec = <15>;
++			status = "okay";
++		};
++
+ 		plic: interrupt-controller@c000000 {
+ 			#interrupt-cells = <1>;
+ 			compatible = "riscv,plic0";
+-- 
+2.37.0
+

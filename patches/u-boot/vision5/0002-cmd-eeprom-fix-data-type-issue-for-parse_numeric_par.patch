@@ -1,0 +1,43 @@
+From 4079aa8ca9a8fe8c81f49f03ca763714ef8181d9 Mon Sep 17 00:00:00 2001
+From: "Jianlong.Huang" <jianlong.huang@starfivetech.com>
+Date: Wed, 27 Oct 2021 09:17:57 +0800
+Subject: [PATCH 02/34] cmd/eeprom: fix data type issue for parse_numeric_param
+
+This patch fixs parse_numeric_param issue on some platfrom which has
+different sizes of int and long, like riscv64.
+
+On riscv64, int is 4 bytes, but long is 8 bytes.
+
+on this situation:
+ulong addr = parse_numeric_param(argv[index]);
+
+if argv[index] is "0x80000000", this "ulong addr" will be
+0xffffffff80000000.
+
+Signed-off-by: Jianlong.Huang <jianlong.huang@starfivetech.com>
+Co-developed-by: Wei Fu <wefu@redhat.com>
+Signed-off-by: Wei Fu <wefu@redhat.com>
+---
+ cmd/eeprom.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/cmd/eeprom.c b/cmd/eeprom.c
+index fc0d444069..0b6ca8c505 100644
+--- a/cmd/eeprom.c
++++ b/cmd/eeprom.c
+@@ -200,10 +200,10 @@ int eeprom_write(unsigned dev_addr, unsigned offset,
+ 	return ret;
+ }
+ 
+-static int parse_numeric_param(char *str)
++static long parse_numeric_param(char *str)
+ {
+ 	char *endptr;
+-	int value = simple_strtol(str, &endptr, 16);
++	long value = simple_strtol(str, &endptr, 16);
+ 
+ 	return (*endptr != '\0') ? -1 : value;
+ }
+-- 
+2.37.0
+

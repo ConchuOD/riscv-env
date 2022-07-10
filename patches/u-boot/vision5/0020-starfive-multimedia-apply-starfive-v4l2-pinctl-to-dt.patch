@@ -1,0 +1,186 @@
+From 2342bfded43e4460d957be1c77c63fb4862dfbcf Mon Sep 17 00:00:00 2001
+From: SW Multimedia <sw.multimedia@starfivetech.com>
+Date: Thu, 9 Sep 2021 19:28:22 +0800
+Subject: [PATCH 20/34] starfive(multimedia): apply starfive v4l2 pinctl to dts
+
+Signed-off-by: SW Multimedia <sw.multimedia@starfivetech.com>
+---
+ .../riscv/dts/jh7100-beaglev-starlight-a1.dts |   9 ++
+ arch/riscv/dts/jh7100-beaglev-starlight.dts   | 108 +++++++++++++++++-
+ arch/riscv/dts/jh7100.dtsi                    |   7 +-
+ 3 files changed, 119 insertions(+), 5 deletions(-)
+
+diff --git a/arch/riscv/dts/jh7100-beaglev-starlight-a1.dts b/arch/riscv/dts/jh7100-beaglev-starlight-a1.dts
+index 30d61494a6..65c0250095 100644
+--- a/arch/riscv/dts/jh7100-beaglev-starlight-a1.dts
++++ b/arch/riscv/dts/jh7100-beaglev-starlight-a1.dts
+@@ -14,3 +14,12 @@
+ 		priority = <256>;
+ 	};
+ };
++
++&gmac {
++	/delete-property/ snps,reset-gpios;
++};
++
++&gpio {
++	/* don't reset gpio mux for serial console and reset gpio */
++	starfive,keep-gpiomux = <13 14 63>;
++};
+diff --git a/arch/riscv/dts/jh7100-beaglev-starlight.dts b/arch/riscv/dts/jh7100-beaglev-starlight.dts
+index 73e2f89acf..e17a5e4fee 100644
+--- a/arch/riscv/dts/jh7100-beaglev-starlight.dts
++++ b/arch/riscv/dts/jh7100-beaglev-starlight.dts
+@@ -377,6 +377,102 @@
+ 			slew-rate = <0>;
+ 		};
+ 	};
++
++	dvpsensor_pins: dvp0 {
++		signal-pins {
++			pins = <PAD_FUNC_SHARE(98)>,
++			       <PAD_FUNC_SHARE(99)>,
++			       <PAD_FUNC_SHARE(100)>,
++			       <PAD_FUNC_SHARE(101)>,
++			       <PAD_FUNC_SHARE(102)>,
++			       <PAD_FUNC_SHARE(103)>,
++			       <PAD_FUNC_SHARE(104)>,
++			       <PAD_FUNC_SHARE(105)>,
++			       <PAD_FUNC_SHARE(106)>,
++			       <PAD_FUNC_SHARE(107)>,
++			       <PAD_FUNC_SHARE(108)>,
++			       <PAD_FUNC_SHARE(109)>,
++			       <PAD_FUNC_SHARE(110)>,
++			       <PAD_FUNC_SHARE(111)>,
++			       <PAD_FUNC_SHARE(112)>,
++			       <PAD_FUNC_SHARE(113)>,
++			       <PAD_FUNC_SHARE(114)>;
++			input-enable;
++		};
++	};
++
++	sensor0_default: sensor0 {
++		reset-pins {
++			pinmux = <GPIOMUX(58, GPO_LOW,
++				  GPO_ENABLE, GPI_NONE)>;
++			bias-disable;
++			drive-strength = <35>;
++			input-disable;
++			input-schmitt-disable;
++			slew-rate = <0>;
++		};
++	};
++
++	sensor0_reset_low: sensor0 {
++		reset-pins {
++			pinmux = <GPIOMUX(58, GPO_LOW,
++				  GPO_ENABLE, GPI_NONE)>;
++			bias-disable;
++			drive-strength = <35>;
++			input-disable;
++			input-schmitt-disable;
++			slew-rate = <0>;
++		};
++	};
++
++	sensor0_reset_high: sensor0 {
++		reset-pins {
++			pinmux = <GPIOMUX(58, GPO_HIGH,
++				  GPO_ENABLE, GPI_NONE)>;
++			bias-disable;
++			drive-strength = <35>;
++			input-disable;
++			input-schmitt-disable;
++			slew-rate = <0>;
++		};
++	};
++
++	sensor1_default: sensor1 {
++		reset-pins {
++			pinmux = <GPIOMUX(57, GPO_LOW,
++				  GPO_ENABLE, GPI_NONE)>;
++			bias-disable;
++			drive-strength = <35>;
++			input-disable;
++			input-schmitt-disable;
++			slew-rate = <0>;
++		};
++	};
++
++	sensor1_reset_low: sensor1 {
++		reset-pins {
++			pinmux = <GPIOMUX(57, GPO_LOW,
++				  GPO_ENABLE, GPI_NONE)>;
++			bias-disable;
++			drive-strength = <35>;
++			input-disable;
++			input-schmitt-disable;
++			slew-rate = <0>;
++		};
++	};
++
++	sensor1_reset_high: sensor1 {
++		reset-pins {
++			pinmux = <GPIOMUX(57, GPO_HIGH,
++				  GPO_ENABLE, GPI_NONE)>;
++			bias-disable;
++			drive-strength = <35>;
++			input-disable;
++			input-schmitt-disable;
++			slew-rate = <0>;
++		};
++	};
++
+ };
+ 
+ &i2c0 {
+@@ -394,7 +490,11 @@
+ 		clocks = <&clk_ext_camera>;
+ 		clock-names = "xclk";
+ 		// powerdown-gpio = <&gpio 21 GPIO_ACTIVE_HIGH>;
+-		reset-gpio = <&gpio 58 GPIO_ACTIVE_HIGH>;
++		// reset-gpio = <&gpio 58 GPIO_ACTIVE_HIGH>;
++		pinctrl-names = "default", "reset_low", "reset_high";
++		pinctrl-0 = <&sensor0_default>;
++		pinctrl-1 = <&sensor0_reset_low>;
++		pinctrl-2 = <&sensor0_reset_high>;
+ 		//DOVDD-supply = <&v2v8>;
+ 		rotation = <0>;
+ 
+@@ -530,7 +630,11 @@
+ 		clocks = <&clk_ext_camera>;
+ 		clock-names = "xclk";
+ 		// powerdown-gpio = <&gpio 21 GPIO_ACTIVE_HIGH>;
+-		reset-gpio = <&gpio 57 GPIO_ACTIVE_HIGH>;
++		// reset-gpio = <&gpio 57 GPIO_ACTIVE_HIGH>;
++		pinctrl-names = "default", "reset_low", "reset_high";
++		pinctrl-0 = <&sensor1_default>;
++		pinctrl-1 = <&sensor1_reset_low>;
++		pinctrl-2 = <&sensor1_reset_high>;
+ 		//DOVDD-supply = <&v2v8>;
+ 		rotation = <0>;
+ 
+diff --git a/arch/riscv/dts/jh7100.dtsi b/arch/riscv/dts/jh7100.dtsi
+index eaabebf5b5..953b35e099 100644
+--- a/arch/riscv/dts/jh7100.dtsi
++++ b/arch/riscv/dts/jh7100.dtsi
+@@ -667,12 +667,13 @@
+ 			      <0x0 0x19870000 0x0 0x30000>,
+ 			      <0x0 0x198a0000 0x0 0x30000>,
+ 			      <0x0 0x11800000 0x0 0x10000>,
+-			      <0x0 0x11840000 0x0 0x10000>,
+-			      <0x0 0x11858000 0x0 0x10000>;
++			      <0x0 0x11840000 0x0 0x10000>;
+ 			reg-names = "mipi0", "vclk", "vrst", "mipi1", "sctrl",
+-				    "isp0", "isp1", "tclk", "trst", "iopad";
++				    "isp0", "isp1", "tclk", "trst";
+ 			interrupts = <119 109 112>;
+ 			memory-region = <&vin_reserved>;
++			pinctrl-names = "default";
++			pinctrl-0 = <&dvpsensor_pins>;
+ 			status = "okay";
+ 
+ 			clocks =  <&clkgen JH7100_CLK_VIN_SRC>,
+-- 
+2.37.0
+

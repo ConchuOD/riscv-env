@@ -1,0 +1,50 @@
+From fa1f6a41b4d1bb8e6429f6216dc15e789c921a1b Mon Sep 17 00:00:00 2001
+From: Wei Fu <wefu@redhat.com>
+Date: Sun, 19 Sep 2021 14:40:29 +0800
+Subject: [PATCH 06/34] sifive: make WayEnable can be configured by menuconfig
+
+Signed-off-by:Wei Fu <wefu@redhat.com>
+---
+ drivers/cache/Kconfig               | 12 ++++++++++++
+ drivers/cache/cache-sifive-ccache.c |  4 ++++
+ 2 files changed, 16 insertions(+)
+
+diff --git a/drivers/cache/Kconfig b/drivers/cache/Kconfig
+index 40f41a817c..259d6e154c 100644
+--- a/drivers/cache/Kconfig
++++ b/drivers/cache/Kconfig
+@@ -46,4 +46,16 @@ config SIFIVE_CCACHE
+ 	  This driver is for SiFive Composable L2/L3 cache. It enables cache
+ 	  ways of composable cache.
+ 
++config SIFIVE_CCACHE_WAYENABLE_OPT
++	bool "SiFive composable cache: customized the largest way enabled."
++	depends on SIFIVE_CCACHE
++
++config SIFIVE_CCACHE_WAYENABLE_NUM
++	int "SiFive composable cache: the largest way which will be enabled"
++	depends on SIFIVE_CCACHE_WAYENABLE_OPT
++	default 1
++	range 1 256
++	help
++	  Range[1, 256]. The index of the largest way which will be enabled.
++
+ endmenu
+diff --git a/drivers/cache/cache-sifive-ccache.c b/drivers/cache/cache-sifive-ccache.c
+index a4889f1bc5..5177f45216 100644
+--- a/drivers/cache/cache-sifive-ccache.c
++++ b/drivers/cache/cache-sifive-ccache.c
+@@ -35,6 +35,10 @@ static int sifive_ccache_enable(struct udevice *dev)
+ 	config = readl(priv->base + SIFIVE_CCACHE_CONFIG);
+ 	ways = FIELD_GET(SIFIVE_CCACHE_CONFIG_WAYS, config);
+ 
++#if CONFIG_IS_ENABLED(SIFIVE_CCACHE_WAYENABLE_OPT)
++	if (CONFIG_SIFIVE_CCACHE_WAYENABLE_NUM < ways)
++		ways = CONFIG_SIFIVE_CCACHE_WAYENABLE_NUM;
++#endif
+ 	writel(ways - 1, priv->base + SIFIVE_CCACHE_WAY_ENABLE);
+ 
+ 	return 0;
+-- 
+2.37.0
+

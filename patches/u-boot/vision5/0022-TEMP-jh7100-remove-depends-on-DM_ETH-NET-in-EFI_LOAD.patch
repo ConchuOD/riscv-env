@@ -1,0 +1,87 @@
+From 769186aeb4d3822bd1c598411601505c1bbd6f00 Mon Sep 17 00:00:00 2001
+From: Tekkaman Ninja <tekkamanninja@163.com>
+Date: Sun, 24 Oct 2021 14:32:36 +0800
+Subject: [PATCH 22/34] [TEMP]jh7100: remove "depends  on DM_ETH || !NET" in
+ EFI_LOADER
+
+This patch reverses some part of change in:
+        commit eac6e0b7979440b889703196f383191c335e7599
+        Author: Simon Glass <sjg@chromium.org>
+        Date:   Fri Sep 24 18:30:17 2021 -0600
+        efi_loader: Drop code that doesn't work with driver model
+        ...
+Since JH7100 ETH driver haven't supported DM yet.
+---
+ lib/efi_loader/Kconfig           |  2 +-
+ lib/efi_loader/efi_device_path.c | 23 ++++++++++++++++++++++-
+ 2 files changed, 23 insertions(+), 2 deletions(-)
+
+diff --git a/lib/efi_loader/Kconfig b/lib/efi_loader/Kconfig
+index e5e35fe51f..8065b0782d 100644
+--- a/lib/efi_loader/Kconfig
++++ b/lib/efi_loader/Kconfig
+@@ -11,7 +11,7 @@ config EFI_LOADER
+ 	# We need EFI_STUB_32BIT to be set on x86_32 with EFI_STUB
+ 	depends on !EFI_STUB || !X86 || X86_64 || EFI_STUB_32BIT
+ 	depends on BLK
+-	depends on DM_ETH || !NET
++	#depends on DM_ETH || !NET
+ 	depends on !EFI_APP
+ 	default y if !ARM || SYS_CPU = armv7 || SYS_CPU = armv8
+ 	select LIB_UUID
+diff --git a/lib/efi_loader/efi_device_path.c b/lib/efi_loader/efi_device_path.c
+index 0542aaae16..4d2568c94c 100644
+--- a/lib/efi_loader/efi_device_path.c
++++ b/lib/efi_loader/efi_device_path.c
+@@ -613,7 +613,7 @@ __maybe_unused static void *dp_fill(void *buf, struct udevice *dev)
+ 		*vdp = ROOT;
+ 		return &vdp[1];
+ 	}
+-#ifdef CONFIG_NET
++#ifdef CONFIG_DM_ETH
+ 	case UCLASS_ETH: {
+ 		struct efi_device_path_mac_addr *dp =
+ 			dp_fill(buf, dev->parent);
+@@ -1034,18 +1034,39 @@ struct efi_device_path *efi_dp_from_uart(void)
+ #ifdef CONFIG_NET
+ struct efi_device_path *efi_dp_from_eth(void)
+ {
++#ifndef CONFIG_DM_ETH
++	struct efi_device_path_mac_addr *ndp;
++#endif
+ 	void *buf, *start;
+ 	unsigned dpsize = 0;
+ 
+ 	assert(eth_get_dev());
+ 
++#ifdef CONFIG_DM_ETH
+ 	dpsize += dp_size(eth_get_dev());
++#else
++	dpsize += sizeof(ROOT);
++	dpsize += sizeof(*ndp);
++#endif
+ 
+ 	start = buf = dp_alloc(dpsize + sizeof(END));
+ 	if (!buf)
+ 		return NULL;
+ 
++#ifdef CONFIG_DM_ETH
+ 	buf = dp_fill(buf, eth_get_dev());
++#else
++	memcpy(buf, &ROOT, sizeof(ROOT));
++	buf += sizeof(ROOT);
++
++	ndp = buf;
++	ndp->dp.type = DEVICE_PATH_TYPE_MESSAGING_DEVICE;
++	ndp->dp.sub_type = DEVICE_PATH_SUB_TYPE_MSG_MAC_ADDR;
++	ndp->dp.length = sizeof(*ndp);
++	ndp->if_type = 1; /* Ethernet */
++	memcpy(ndp->mac.addr, eth_get_ethaddr(), ARP_HLEN);
++	buf = &ndp[1];
++#endif
+ 
+ 	*((struct efi_device_path *)buf) = END;
+ 
+-- 
+2.37.0
+

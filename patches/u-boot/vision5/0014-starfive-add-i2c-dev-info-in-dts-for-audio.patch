@@ -1,0 +1,79 @@
+From eebdd34ef7407e55100853c1a4dacee70774a985 Mon Sep 17 00:00:00 2001
+From: SW Multimedia <sw.multimedia@starfivetech.com>
+Date: Fri, 3 Sep 2021 21:07:29 +0800
+Subject: [PATCH 14/34] starfive: add i2c dev info in dts for audio
+
+---
+ arch/riscv/dts/jh7100-beaglev-starlight.dts | 36 +++++++++++++++++----
+ 1 file changed, 30 insertions(+), 6 deletions(-)
+
+diff --git a/arch/riscv/dts/jh7100-beaglev-starlight.dts b/arch/riscv/dts/jh7100-beaglev-starlight.dts
+index 6fce98ce3a..c9920ef6e0 100644
+--- a/arch/riscv/dts/jh7100-beaglev-starlight.dts
++++ b/arch/riscv/dts/jh7100-beaglev-starlight.dts
+@@ -90,8 +90,8 @@
+ 	i2c-sda-hold-time-ns = <300>;
+ 	i2c-sda-falling-time-ns = <500>;
+ 	i2c-scl-falling-time-ns = <500>;
+-	scl-gpio = <&gpio 62 0>;
+-	sda-gpio = <&gpio 61 0>;
++	scl-gpio = <&gpio 62 GPIO_ACTIVE_HIGH>;
++	sda-gpio = <&gpio 61 GPIO_ACTIVE_HIGH>;
+ 	status = "okay";
+ 
+ 	imx219@10 {
+@@ -121,9 +121,27 @@
+ 	i2c-sda-hold-time-ns = <300>;
+ 	i2c-sda-falling-time-ns = <100>;
+ 	i2c-scl-falling-time-ns = <100>;
+-	scl-gpio = <&gpio 47 0>;
+-	sda-gpio = <&gpio 48 0>;
++	scl-gpio = <&gpio 47 GPIO_ACTIVE_HIGH>;
++	sda-gpio = <&gpio 48 GPIO_ACTIVE_HIGH>;
+ 	status = "okay";
++
++	ac108_a: ac108@3b {
++		compatible = "x-power,ac108_0";
++		reg = <0x3b>;
++		#sound-dai-cells = <0>;
++		data-protocol = <0>;
++	};
++	wm8960: codec@1a {
++		compatible = "wlf,wm8960";
++		reg = <0x1a>;
++		#sound-dai-cells = <0>;
++		wlf,shared-lrclk;
++	};
++	seeed_plane_i2c@45 {
++		compatible = "seeed_panel";
++		reg = <0x45>;
++	};
++
+ };
+ 
+ &i2c2 {
+@@ -131,13 +149,19 @@
+ 	i2c-sda-hold-time-ns = <300>;
+ 	i2c-sda-falling-time-ns = <500>;
+ 	i2c-scl-falling-time-ns = <500>;
+-	scl-gpio = <&gpio 60 0>;
+-	sda-gpio = <&gpio 59 0>;
++	scl-gpio = <&gpio 60 GPIO_ACTIVE_HIGH>;
++	sda-gpio = <&gpio 59 GPIO_ACTIVE_HIGH>;
+ 	status = "okay";
+ 
+ 	seeed_plane_i2c@45 {
+ 		compatible = "seeed_panel";
+ 		reg = <0x45>;
++
++		port {
++			panel_dsi_port: endpoint {
++				remote-endpoint = <&dsi_out_port>;
++			};
++		};
+ 	};
+ };
+ 
+-- 
+2.37.0
+
