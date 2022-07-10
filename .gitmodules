@@ -19,3 +19,6 @@
 [submodule "polarfire-soc-examples/polarfire-soc-amp-examples"]
 	path = polarfire-soc-examples/polarfire-soc-amp-examples
 	url = https://github.com/polarfire-soc/polarfire-soc-amp-examples.git
+[submodule "2ndboot"]
+	path = 2ndboot
+	url = https://github.com/starfive-tech/JH7100_secondBoot

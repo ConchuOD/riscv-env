@@ -43,6 +43,7 @@ buildroot_builddir := $(wrkdir)/$(DEVKIT)/buildroot_build
 buildroot_initramfs_sysroot := $(wrkdir)/$(DEVKIT)/buildroot_initramfs_sysroot
 
 buildroot_initramfs_tar := $(buildroot_initramfs_wrkdir)/images/rootfs.tar
+buildroot_initramfs_config ?= $(confdir)/buildroot_initramfs_config
 buildroot_rootfs_wrkdir := $(wrkdir)/buildroot_rootfs
 buildroot_rootfs_ext := $(buildroot_rootfs_wrkdir)/images/rootfs.ext4
 buildroot_rootfs_config := $(confdir)/buildroot_rootfs_config
