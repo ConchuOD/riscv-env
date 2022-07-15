@@ -26,16 +26,27 @@ endif
 
 include conf/$(DEVKIT)/board.mk
 
-RISCV ?= $(CURDIR)/toolchain
-PATH := $(RISCV)/bin:$(PATH)
+LLVM_DIR ?= $(CURDIR)/toolchain/llvm
+GCC_DIR ?= $(CURDIR)/toolchain
+
+PATH := $(LLVM_DIR)/bin:$(GCC_DIR)/bin:$(PATH)
 GITID := $(shell git describe --dirty --always)
 
 toolchain_srcdir := $(srcdir)/riscv-gnu-toolchain
 toolchain_wrkdir := $(wrkdir)/riscv-gnu-toolchain
 toolchain_dest := $(CURDIR)/toolchain
 target := riscv64-unknown-linux-gnu
-CROSS_COMPILE := $(RISCV)/bin/$(target)-
+CROSS_COMPILE := $(target)-
 target_gdb := $(CROSS_COMPILE)gdb
+CROSS_COMPILE_CC := $(GCC_DIR)/bin/$(CROSS_COMPILE)gcc
+
+ifneq ($(CLANG),)
+LINUX_CC := "CC=clang"
+LINUX_LLVM := "LLVM=1"
+LINUX_CROSS := "$(target)-"
+else
+LINUX_CROSS := "$(CROSS_COMPILE)"
+endif
 
 buildroot_srcdir := $(srcdir)/buildroot
 buildroot_initramfs_wrkdir := $(wrkdir)/$(DEVKIT)/buildroot_initramfs
@@ -206,12 +217,12 @@ all: $(fit) $(vfat_image) $(bootloaders-y)
 	@echo "Refer to the readme for instructions on how to format"
 	@echo "an SD/eMMC with the image & boot Linux."
 
-ifneq ($(RISCV),$(toolchain_dest))
-$(CROSS_COMPILE)gcc:
-	ifeq (,$(CROSS_COMPILE)gcc --version 2>/dev/null)
+ifneq ($(GCC_DIR),$(toolchain_dest))
+$(CROSS_COMPILE_CC):
+	ifeq (,CROSS_COMPILE_CC --version 2>/dev/null)
 		$(error The RISCV environment variable was set, but is not pointing at a toolchain install tree)
 else
-$(CROSS_COMPILE)gcc: $(toolchain_srcdir)
+CROSS_COMPILE_CC: $(toolchain_srcdir)
 	mkdir -p $(toolchain_wrkdir)
 	mkdir -p $(toolchain_wrkdir)/header_workdir
 	$(MAKE) -C $(linux_srcdir) O=$(toolchain_wrkdir)/header_workdir ARCH=riscv INSTALL_HDR_PATH=$(abspath $(toolchain_srcdir)/linux-headers) headers_install
@@ -238,10 +249,10 @@ $(buildroot_builddir_stamp): $(buildroot_srcdir) $(buildroot_patches)
 
 $(buildroot_initramfs_wrkdir)/.config: $(buildroot_builddir_stamp) $(confdir)/initramfs.txt $(buildroot_initramfs_config) $(uboot_s_cfg) $(uboot_s_txt)
 	cp $(buildroot_initramfs_config) $(buildroot_initramfs_wrkdir)/.config
-	$(MAKE) -C $(buildroot_builddir) RISCV=$(RISCV) PATH=$(PATH) O=$(buildroot_initramfs_wrkdir) olddefconfig CROSS_COMPILE=$(CROSS_COMPILE) -j$(num_threads)
+	$(MAKE) -C $(buildroot_builddir) RISCV=$(GCC_DIR) PATH=$(PATH) O=$(buildroot_initramfs_wrkdir) olddefconfig CROSS_COMPILE=$(CROSS_COMPILE) -j$(num_threads)
 
-$(buildroot_initramfs_tar): $(buildroot_builddir_stamp) $(buildroot_initramfs_wrkdir)/.config $(CROSS_COMPILE)gcc $(buildroot_initramfs_config)
-	$(MAKE) -C $(buildroot_builddir) RISCV=$(RISCV) PATH=$(PATH) O=$(buildroot_initramfs_wrkdir) -j$(num_threads) DEVKIT=$(DEVKIT)
+$(buildroot_initramfs_tar): $(buildroot_builddir_stamp) $(buildroot_initramfs_wrkdir)/.config CROSS_COMPILE_CC $(buildroot_initramfs_config)
+	$(MAKE) -C $(buildroot_builddir) RISCV=$(GCC_DIR) PATH=$(PATH) O=$(buildroot_initramfs_wrkdir) -j$(num_threads) DEVKIT=$(DEVKIT)
 
 $(buildroot_initramfs_sysroot_stamp): $(buildroot_initramfs_tar)
 	mkdir -p $(buildroot_initramfs_sysroot)
@@ -256,10 +267,10 @@ buildroot_initramfs_menuconfig: $(buildroot_initramfs_wrkdir)/.config $(buildroo
 
 $(buildroot_rootfs_wrkdir)/.config: $(buildroot_builddir_stamp)
 	cp $(buildroot_rootfs_config) $@
-	$(MAKE) -C $(buildroot_builddir) RISCV=$(RISCV) PATH=$(PATH) O=$(buildroot_rootfs_wrkdir) olddefconfig
+	$(MAKE) -C $(buildroot_builddir) RISCV=$(GCC_DIR) PATH=$(PATH) O=$(buildroot_rootfs_wrkdir) olddefconfig
 
-$(buildroot_rootfs_ext): $(buildroot_builddir_stamp) $(buildroot_rootfs_wrkdir)/.config $(CROSS_COMPILE)gcc $(buildroot_rootfs_config)
-	$(MAKE) -C $(buildroot_builddir) RISCV=$(RISCV) PATH=$(PATH) O=$(buildroot_rootfs_wrkdir) -j$(num_threads)
+$(buildroot_rootfs_ext): $(buildroot_builddir_stamp) $(buildroot_rootfs_wrkdir)/.config CROSS_COMPILE_CC $(buildroot_rootfs_config)
+	$(MAKE) -C $(buildroot_builddir) RISCV=$(GCC_DIR) PATH=$(PATH) O=$(buildroot_rootfs_wrkdir) -j$(num_threads)
 
 .PHONY: buildroot_rootfs_menuconfig
 buildroot_rootfs_menuconfig: $(buildroot_rootfs_wrkdir)/.config $(buildroot_builddir_stamp)
@@ -269,18 +280,18 @@ buildroot_rootfs_menuconfig: $(buildroot_rootfs_wrkdir)/.config $(buildroot_buil
 
 .PHONY: linux_cfg
 cfg: $(linux_wrkdir)/.config
-$(linux_wrkdir)/.config: $(linux_srcdir) $(CROSS_COMPILE)gcc
+$(linux_wrkdir)/.config: $(linux_srcdir) $(CROSS_COMPILE_CC)
 	mkdir -p $(dir $@)
 ifneq (,$(findstring $(confdir),$(linux_defconfig)))
 	cp $(linux_defconfig) $@
-	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) ARCH=riscv olddefconfig
+	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_CC) ARCH=riscv olddefconfig
 else
-	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) ARCH=riscv $(linux_defconfig)
+	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_CC) ARCH=riscv $(linux_defconfig)
 endif
 ifeq ($(ISA),$(filter rv32%,$(ISA)))
 	sed 's/^.*CONFIG_ARCH_RV32I.*$$/CONFIG_ARCH_RV32I=y/' -i $@
 	sed 's/^.*CONFIG_ARCH_RV64I.*$$/CONFIG_ARCH_RV64I=n/' -i $@
-	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) ARCH=riscv rv32_defconfig
+	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_CC) ARCH=riscv rv32_defconfig
 endif
 
 $(initramfs).d: $(buildroot_initramfs_sysroot) $(kernel-modules-install-stamp)
@@ -298,15 +309,15 @@ $(initramfs): $(initramfs_uc)
 	gzip $(initramfs_uc) --keep -q
 	mv $(initramfs_uc).gz $(initramfs)
 
-$(vmlinux): $(linux_wrkdir)/.config $(CROSS_COMPILE)gcc
+$(vmlinux): $(linux_wrkdir)/.config $(CROSS_COMPILE_CC)
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
 		ARCH=riscv \
-		CROSS_COMPILE=$(CROSS_COMPILE) \
+		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_CC) \
 		PATH=$(PATH) \
 		vmlinux -j$(num_threads)
 
 $(vmlinux_stripped): $(vmlinux)
-	PATH=$(PATH) $(target)-strip -o $@ $<
+	PATH=$(PATH) $(CROSS_COMPILE)strip -o $@ $<
 
 $(vmlinux_bin): $(vmlinux)
 	PATH=$(PATH) $(CROSS_COMPILE)objcopy -O binary $< $@
@@ -315,7 +326,7 @@ $(vmlinux_bin): $(vmlinux)
 $(kernel-modules-stamp): $(linux_srcdir) $(vmlinux)
 	$(MAKE) -C $< O=$(linux_wrkdir) \
 		ARCH=riscv \
-		CROSS_COMPILE=$(CROSS_COMPILE) \
+		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_CC) \
 		PATH=$(PATH) \
 		modules -j$(num_threads)
 	touch $@
@@ -324,7 +335,7 @@ $(kernel-modules-install-stamp): $(linux_srcdir) $(buildroot_initramfs_sysroot) 
 	rm -rf $(buildroot_initramfs_sysroot)/lib/modules/
 	$(MAKE) -C $< O=$(linux_wrkdir) \
 		ARCH=riscv \
-		CROSS_COMPILE=$(CROSS_COMPILE) \
+		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_CC) \
 		PATH=$(PATH) \
 		modules_install -j$(num_threads) \
 		INSTALL_MOD_PATH=$(buildroot_initramfs_sysroot)
@@ -332,12 +343,12 @@ $(kernel-modules-install-stamp): $(linux_srcdir) $(buildroot_initramfs_sysroot) 
 	
 .PHONY: linux-menuconfig
 linux-menuconfig: $(linux_wrkdir)/.config
-	$(MAKE) -C $(linux_srcdir) O=$(dir $<) ARCH=riscv menuconfig CROSS_COMPILE=$(CROSS_COMPILE)
-	$(MAKE) -C $(linux_srcdir) O=$(dir $<) ARCH=riscv savedefconfig CROSS_COMPILE=$(CROSS_COMPILE)
+	$(MAKE) -C $(linux_srcdir) O=$(dir $<) ARCH=riscv menuconfig CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_CC)
+	$(MAKE) -C $(linux_srcdir) O=$(dir $<) ARCH=riscv savedefconfig CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_CC)
 	cp $(dir $<)/defconfig $(linux_defconfig)
 
 $(device_tree_blob): $(vmlinux)
-	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) ARCH=riscv dtbs
+	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_CC) ARCH=riscv dtbs
 	cp $(linux_dtb) $(device_tree_blob)
 
 $(fit): $(uboot_s) $(uimage) $(vmlinux_bin) $(initramfs) $(device_tree_blob) $(its_file) $(kernel-modules-install-stamp)
@@ -368,7 +379,7 @@ $(fsbl): $(libversion) $(fsbl_wrkdir_stamp) $(device_tree_blob)
 	
 $(uboot_s): $(buildroot_initramfs_sysroot_stamp)
 
-$(opensbi): $(uboot_s) $(CROSS_COMPILE)gcc 
+$(opensbi): $(uboot_s) CROSS_COMPILE_CC 
 	rm -rf $(opensbi_wrkdir)
 	mkdir -p $(opensbi_wrkdir)
 	mkdir -p $(dir $@)
@@ -442,7 +453,7 @@ EXT_CFLAGS := -DMPFS_HAL_FIRST_HART=4 -DMPFS_HAL_LAST_HART=4
 export EXT_CFLAGS
 .PHONY: amp
 amp: $(amp_example)
-$(amp_example): $(amp_example_srcdir) $(buildroot_initramfs_sysroot_stamp) $(CROSS_COMPILE)gcc
+$(amp_example): $(amp_example_srcdir) $(buildroot_initramfs_sysroot_stamp) CROSS_COMPILE_CC
 	rm -rf $(amp_example_srcdir)/Default
 	$(MAKE) -C $(amp_example_srcdir) O=$(amp_example_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) REMOTE=1
 	cp $(amp_example_srcdir)/Remote-Default/mpfs-rpmsg-remote.elf $(amp_example)
