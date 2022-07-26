@@ -1,13 +1,13 @@
-From b8cfd8cac3efb990c5cb4236a20caf633217c342 Mon Sep 17 00:00:00 2001
-From: conor dooley <conor.dooley@microchip.com>
-Date: Mon, 25 Oct 2021 16:01:27 +0100
-Subject: [PATCH] test
+From fb47a515e330cd60d8a96e82c8a56a9239e6a070 Mon Sep 17 00:00:00 2001
+From: Conor Dooley <conor.dooley@microchip.com>
+Date: Wed, 2 Feb 2022 12:50:47 +0000
+Subject: [PATCH] mchp_examples: add polarfire soc linux examples
 
 ---
  package/Config.in                      |  1 +
  package/mchp_examples/Config.in        |  4 +++
- package/mchp_examples/mchp_examples.mk | 47 ++++++++++++++++++++++++++
- 3 files changed, 52 insertions(+)
+ package/mchp_examples/mchp_examples.mk | 50 ++++++++++++++++++++++++++
+ 3 files changed, 55 insertions(+)
  create mode 100644 package/mchp_examples/Config.in
  create mode 100644 package/mchp_examples/mchp_examples.mk
 
@@ -35,17 +35,17 @@ index 0000000000..c6ad9a7068
 +	  blah blah blah
 diff --git a/package/mchp_examples/mchp_examples.mk b/package/mchp_examples/mchp_examples.mk
 new file mode 100644
-index 0000000000..a8857ca806
+index 0000000000..74ec2fa481
 --- /dev/null
 +++ b/package/mchp_examples/mchp_examples.mk
-@@ -0,0 +1,47 @@
-+MCHP_EXAMPLES_VERSION = 5a80acbd53ceba62c1ac5b2d5bb54b10f5160cb2
-+MCHP_EXAMPLES_SITE = ../../polarfire-soc-examples
+@@ -0,0 +1,50 @@
++MCHP_EXAMPLES_VERSION = 1ae82e779341c17f31dbb83aa8a0558d8eac1af4
++MCHP_EXAMPLES_SITE = ../../../polarfire-soc-examples
 +MCHP_EXAMPLES_SITE_METHOD = local
 +
 +
-+EXAMPLE_DIRS += amp can gpio system-services ethernet fpga-fabric-interfaces dma pdma
-+EXAMPLE_FILES += amp/rpmsg-pingpong/rpmsg-pingpong amp/rpmsg-tty-example/rpmsg-tty can/uio-can-example gpio/gpiod-test gpio/gpio-event system-services/system-services-example system-services/signature-verification-demo fpga-fabric-interfaces/lsram/uio-lsram-read-write dma/uio-dma-interrupt pdma/pdma-ex
++EXAMPLE_DIRS += amp can gpio system-services ethernet fpga-fabric-interfaces dma
++EXAMPLE_FILES += amp/rpmsg-pingpong/rpmsg-pingpong amp/rpmsg-tty-example/rpmsg-tty can/uio-can-example gpio/gpiod-test gpio/gpiod-event system-services/system-services-example system-services/signature-verification-demo fpga-fabric-interfaces/lsram/uio-lsram-read-write dma/uio-dma-interrupt
 +EXAMPLE_TARGET_DIR = /opt/microchip/
 +
 +define MCHP_EXAMPLES_INSTALL_DIRS
@@ -55,6 +55,9 @@ index 0000000000..a8857ca806
 +endef
 +
 +define MCHP_EXAMPLES_INSTALL_TARGET_CMDS
++	$(INSTALL) -m 755 -D ../../../conf/motd \
++		$(TARGET_DIR)/etc/motd
++
 +        $(INSTALL) -d $(TARGET_DIR)$(EXAMPLE_TARGET_DIR) 
 +	$(foreach d,$(EXAMPLE_DIRS), \
 +		rm -rf $(TARGET_DIR)$(EXAMPLE_TARGET_DIR)$(d); \
@@ -65,7 +68,7 @@ index 0000000000..a8857ca806
 +		$(TARGET_MAKE_ENV) $(MAKE) -C $(@D)/polarfire-soc-linux-examples/$(dir $(example_file)) $(notdir $(example_file)) CC=$(TARGET_CC); \
 +                $(INSTALL) -D -m 775 $(@D)/polarfire-soc-linux-examples/$(example_file) $(TARGET_DIR)$(EXAMPLE_TARGET_DIR)/$(dir $(example_file));)
 +
-+	ln -s $(EXAMPLE_TARGET_DIR)/ethernet/iio-http-server  $(TARGET_DIR)$(EXAMPLE_TARGET_DIR)/iiohttpserver
++	ln -s $(EXAMPLE_TARGET_DIR)/ethernet/iio-http-server $(TARGET_DIR)$(EXAMPLE_TARGET_DIR)/iiohttpserver
 +
 +endef
 +
@@ -87,5 +90,5 @@ index 0000000000..a8857ca806
 +
 +$(eval $(generic-package))
 -- 
-2.23.0.windows.1
+2.35.1
 
