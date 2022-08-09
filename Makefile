@@ -111,7 +111,7 @@ openocd := $(openocd_wrkdir)/src/openocd
 
 payload_generator_url := https://github.com/polarfire-soc/hart-software-services/releases/download/2021.11/hss-payload-generator.zip
 payload_generator_tarball := $(srcdir)/br-dl-dir/payload_generator.zip
-# hss_payload_generator := /stuff/hss-payload-generator
+# hss_payload_generator := /stuff/junk/hss-payload-generator
 hss_payload_generator := $(wrkdir)/hss-payload-generator
 hss_srcdir := $(srcdir)/hart-software-services
 hss_uboot_payload_bin := $(wrkdir)/payload.bin
@@ -122,7 +122,7 @@ amp_example_srcdir := $(srcdir)/polarfire-soc-examples/polarfire-soc-amp-example
 amp_example_wrkdir := $(wrkdir)/amp/mpfs-rpmsg-freertos
 
 GENIMAGE_CFG=$(confdir)/genimage-icicle-mpfs.cfg
-TARGET_DIR=$(CURDIR)/work
+TARGET_DIR=$(CURDIR)/work/binaries
 BINARIES_DIR=$(CURDIR)/work
 GENIMAGE_TMP=/tmp/genimage-${DEVKIT}
 
@@ -261,6 +261,10 @@ CROSS_COMPILE_CC: $(toolchain_srcdir)
 	$(MAKE) -C $(toolchain_wrkdir) -j$(num_threads)
 	sed 's/^#define LINUX_VERSION_CODE.*/#define LINUX_VERSION_CODE 332032/' -i $(toolchain_dest)/sysroot/usr/include/linux/version.h
 endif
+
+# .PHONY: clangbuiltlinux
+# clangbuiltlinux:
+# 	./build-llvm.py -b ../work/llvm/ -I ../toolchain/llvm/ -l ../llvm/ -n
 
 $(buildroot_builddir_stamp): $(buildroot_srcdir) $(buildroot_patches)
 	- rm -rf $(buildroot_builddir)
@@ -637,7 +641,7 @@ endif
 genimage-icicle-image: $(fit) $(uboot_s_scr)
 	rm -rf $(GENIMAGE_TMP)
 	mkdir -p $(GENIMAGE_TMP)
-	$(CURDIR)/work/buildroot_initramfs/host/bin/genimage \
+	$(CURDIR)/work/$(DEVKIT)/buildroot_initramfs/host/bin/genimage \
 		--rootpath "${TARGET_DIR}" \
 		--tmppath "${GENIMAGE_TMP}" \
 		--inputpath "${BINARIES_DIR}" \
