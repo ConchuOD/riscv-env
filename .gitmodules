@@ -28,3 +28,9 @@
 [submodule "sparse"]
 	path = sparse
 	url = https://git.kernel.org/pub/scm/devel/sparse/sparse.git/
+[submodule "llvm-project"]
+	path = llvm
+	url = git@github.com:llvm/llvm-project.git
+[submodule "clang-built-linux"]
+	path = clang-built-linux
+	url = https://github.com/ClangBuiltLinux/tc-build

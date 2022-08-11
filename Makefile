@@ -2,7 +2,7 @@ ISA ?= rv64imafdc
 
 ABI ?= lp64d
 
-QEMU ?= ~/stuff/qemu/build
+QEMU ?= /stuff/qemu/build
 LIBERO_PATH ?= /usr/local/microsemi/Libero_v2021.1/
 SC_PATH ?= /usr/local/microsemi/SoftConsole-v2021.1/
 fpgenprog := $(LIBERO_PATH)/bin64/fpgenprog
@@ -34,6 +34,9 @@ SPARSE_DIR ?= $(CURDIR)/sparse
 PATH := $(SPARSE_DIR):/$(LLVM_DIR)/bin:$(GCC_DIR)/bin:$(PATH)
 GITID := $(shell git describe --dirty --always)
 
+cbl_dir := $(srcdir)/clang-built-linux
+llvm_srcdir := $(srcdir)/llvm
+llvm_wrkdir := $(wrkdir)/llvm
 toolchain_srcdir := $(srcdir)/riscv-gnu-toolchain
 toolchain_wrkdir := $(wrkdir)/riscv-gnu-toolchain
 toolchain_dest := $(CURDIR)/toolchain
@@ -153,7 +156,7 @@ random-config:
 	cp $(CURDIR)/oldconfig $(linux_wrkdir)/.config
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
 		ARCH=riscv \
-		CROSS_COMPILE=$(CROSS_COMPILE) \
+		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_CC) \
 		PATH=$(PATH) \
 		vmlinux -j$(num_threads)
 
@@ -277,9 +280,9 @@ CROSS_COMPILE_CC: $(toolchain_srcdir)
 	sed 's/^#define LINUX_VERSION_CODE.*/#define LINUX_VERSION_CODE 332032/' -i $(toolchain_dest)/sysroot/usr/include/linux/version.h
 endif
 
-# .PHONY: clangbuiltlinux
-# clangbuiltlinux:
-# 	./build-llvm.py -b ../work/llvm/ -I ../toolchain/llvm/ -l ../llvm/ -n
+.PHONY: clang-built-linux
+clang-built-linux:
+	$(cbl_dir)/build-llvm.py -b $(llvm_wrkdir)/llvm/ -I $(LLVM_DIR) -l $(llvm_srcdir) -n
 
 $(buildroot_builddir_stamp): $(buildroot_srcdir) $(buildroot_patches)
 	- rm -rf $(buildroot_builddir)
