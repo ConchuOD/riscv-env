@@ -2,6 +2,7 @@ ISA ?= rv64imafdc
 
 ABI ?= lp64d
 
+QEMU ?= ~/stuff/qemu/build
 LIBERO_PATH ?= /usr/local/microsemi/Libero_v2021.1/
 SC_PATH ?= /usr/local/microsemi/SoftConsole-v2021.1/
 fpgenprog := $(LIBERO_PATH)/bin64/fpgenprog
@@ -168,6 +169,29 @@ smatch:
 		PATH=$(PATH) \
 		C=2 CHECK=$(srcdir)/smatch/smatch \
 		$(FILE)
+
+qemu-virt:
+	$(QEMU)/qemu-system-riscv64 -M virt \
+		-M virt -nographic \
+		-kernel $(vmlinux_bin) \
+		-append "root=/dev/vda ro" \
+		-initrd $(initramfs)
+
+qemu-icicle:
+	$(QEMU)/qemu-system-riscv64 -M microchip-icicle-kit \
+		-m 2G -smp 5 \
+		-kernel $(vmlinux_bin) \
+		-dtb $(wrkdir)/riscvpc.dtb \
+		-append "root=/dev/vda ro" \
+		-initrd $(initramfs) \
+		-display none -serial null \
+		-serial stdio
+# -chardev socket,id=serial1,path=serial1.sock,server=on,wait=on \
+# -serial chardev:serial1
+# -bios $(wrkdir)/binaries/hss.bin \
+
+# -nic user,model=cadence_gem \
+# -nic tap,ifname=tap,model=cadence_gem,script=no \
 
 coccicheck:
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
