@@ -206,6 +206,9 @@ dt_binding_check:
 		PATH=$(PATH) \
 		dt_binding_check -j$(num_threads) 2>&1 | tee logs/dt_binding_check.log
 
+maintainers:
+	cd $(linux_srcdir) && ./scripts/get_maintainer.pl --self-test=patterns | tee $(srcdir)/logs/maintainers_check.log
+
 all: $(fit) $(vfat_image) $(bootloaders-y)
 	@echo
 	@echo "GPT (for SPI flash or SDcard) and U-boot Image files have"
@@ -321,7 +324,7 @@ $(vmlinux_stripped): $(vmlinux)
 
 $(vmlinux_bin): $(vmlinux)
 	PATH=$(PATH) $(CROSS_COMPILE)objcopy -O binary $< $@
-	
+
 .PHONY: kernel-modules kernel-modules-install
 $(kernel-modules-stamp): $(linux_srcdir) $(vmlinux)
 	$(MAKE) -C $< O=$(linux_wrkdir) \
