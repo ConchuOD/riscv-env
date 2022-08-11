@@ -22,3 +22,6 @@
 [submodule "2ndboot"]
 	path = 2ndboot
 	url = https://github.com/starfive-tech/JH7100_secondBoot
+[submodule "smatch"]
+	path = smatch
+	url = https://github.com/error27/smatch

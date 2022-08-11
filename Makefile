@@ -166,7 +166,7 @@ smatch:
 		ARCH=riscv \
 		CROSS_COMPILE=$(CROSS_COMPILE) \
 		PATH=$(PATH) \
-		C=2 CHECK=/home/conor/stuff/smatch/smatch \
+		C=2 CHECK=$(srcdir)/smatch/smatch \
 		$(FILE)
 
 coccicheck:
