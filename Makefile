@@ -157,6 +157,20 @@ random-config:
 		PATH=$(PATH) \
 		vmlinux -j$(num_threads)
 
+allmodconfig:
+	$(MAKE) clean-linux
+	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
+		ARCH=riscv \
+		CROSS_COMPILE=$(CROSS_COMPILE) \
+		PATH=$(PATH) \
+		allmodconfig
+	cp $(CURDIR)/oldconfig $(linux_wrkdir)/.config
+	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
+		ARCH=riscv \
+		CROSS_COMPILE=$(CROSS_COMPILE) \
+		PATH=$(PATH) \
+		vmlinux -j$(num_threads)
+
 smatch:
 	$(MAKE) clean-linux
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
