@@ -29,8 +29,9 @@ include conf/$(DEVKIT)/board.mk
 
 LLVM_DIR ?= $(CURDIR)/toolchain/llvm
 GCC_DIR ?= $(CURDIR)/toolchain
+SPARSE_DIR ?= $(CURDIR)/sparse
 
-PATH := $(LLVM_DIR)/bin:$(GCC_DIR)/bin:$(PATH)
+PATH := $(SPARSE_DIR):/$(LLVM_DIR)/bin:$(GCC_DIR)/bin:$(PATH)
 GITID := $(shell git describe --dirty --always)
 
 toolchain_srcdir := $(srcdir)/riscv-gnu-toolchain

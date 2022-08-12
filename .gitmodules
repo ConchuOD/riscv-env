@@ -25,3 +25,6 @@
 [submodule "smatch"]
 	path = smatch
 	url = https://github.com/error27/smatch
+[submodule "sparse"]
+	path = sparse
+	url = https://git.kernel.org/pub/scm/devel/sparse/sparse.git/
