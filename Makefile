@@ -143,7 +143,7 @@ deploy_dir := $(CURDIR)/deploy
 .PHONY: tftp-boot all-devkits dtbs_check dt_binding_check
 tftp-boot:
 	$(MAKE) clean-linux DEVKIT=$(DEVKIT)
-	$(MAKE) all W=1 DEVKIT=$(DEVKIT) 2>&1 | tee logs/tftp.log
+	$(MAKE) all W=1 C=1 DEVKIT=$(DEVKIT) 2>&1 | tee logs/tftp.log
 	cp $(fit) /srv/tftp/$(DEVKIT)-fitImage.fit
 	cp $(uboot_s_scr) /srv/tftp/$(tftp_boot_scr)
 	cp $(vmlinux_bin) /srv/tftp/$(DEVKIT)-vmlinux.bin
@@ -200,13 +200,13 @@ qemu-icicle:
 		-m 2G -smp 5 \
 		-kernel $(vmlinux_bin) \
 		-dtb $(wrkdir)/riscvpc.dtb \
-		-append "root=/dev/vda ro" \
 		-initrd $(initramfs) \
 		-display none -serial null \
 		-serial stdio
 # -chardev socket,id=serial1,path=serial1.sock,server=on,wait=on \
 # -serial chardev:serial1
 # -bios $(wrkdir)/binaries/hss.bin \
+-append "root=/dev/vda ro" \
 
 # -nic user,model=cadence_gem \
 # -nic tap,ifname=tap,model=cadence_gem,script=no \
@@ -280,9 +280,12 @@ CROSS_COMPILE_CC: $(toolchain_srcdir)
 	sed 's/^#define LINUX_VERSION_CODE.*/#define LINUX_VERSION_CODE 332032/' -i $(toolchain_dest)/sysroot/usr/include/linux/version.h
 endif
 
-.PHONY: clang-built-linux
+.PHONY: clang-built-linux sparse
 clang-built-linux:
 	$(cbl_dir)/build-llvm.py -b $(llvm_wrkdir)/llvm/ -I $(LLVM_DIR) -l $(llvm_srcdir) -n
+
+sparse:
+	$(MAKE) -C $(SPARSE_DIR)
 
 $(buildroot_builddir_stamp): $(buildroot_srcdir) $(buildroot_patches)
 	- rm -rf $(buildroot_builddir)
