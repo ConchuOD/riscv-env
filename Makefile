@@ -140,6 +140,15 @@ bootloaders-$(AMP_SUPPORT) += $(amp_example)
 
 deploy_dir := $(CURDIR)/deploy
 
+ykurcmd_srcdir := $(srcdir)/ykurcmd
+ykurcmd := $(wrkdir)/.ykurcmd
+ykush_srcdir := $(srcdir)/ykush
+ykush := $(wrkdir)/.ykush
+lab_srcdir := $(srcdir)/lab
+lab_wrkdir := $(wrkdir)/lab_build
+lab_config := $(srcdir)/lab/config.yaml
+lab := $(wrkdir)/bin/lab
+
 .PHONY: tftp-boot all-devkits dtbs_check dt_binding_check
 tftp-boot:
 	$(MAKE) clean-linux DEVKIT=$(DEVKIT)
@@ -149,6 +158,9 @@ tftp-boot:
 	cp $(vmlinux_bin) /srv/tftp/$(DEVKIT)-vmlinux.bin
 	cp $(uimage) /srv/tftp/$(DEVKIT).uImage
 	cd $(linux_srcdir) && ./scripts/clang-tools/gen_compile_commands.py ${linux_wrkdir}
+
+reboot: $(lab)
+	$(lab) -f reboot -b $(DEVKIT) -c $(lab_config)
 
 random-config:
 	$(MAKE) clean-linux
@@ -250,6 +262,27 @@ dt_binding_check:
 
 maintainers:
 	cd $(linux_srcdir) && ./scripts/get_maintainer.pl --self-test=patterns | tee $(srcdir)/logs/maintainers_check.log
+
+.PHONY: lab
+lab: $(lab)
+ykush: $(ykush)
+
+$(ykush): $(ykush_srcdir)
+	cd $(ykush_srcdir) && ./build.sh
+	cd $(ykush_srcdir) && sudo ./install.sh
+	touch $@
+
+$(ykurcmd): $(ykurcmd_srcdir)
+	cd $(ykurcmd_srcdir) && ./build.sh
+	cd $(ykurcmd_srcdir) && sudo ./install.sh
+	touch $@
+
+$(lab): $(lab_srcdir) $(ykush) $(ykurcmd)
+	cargo install -f \
+		--path $(lab_srcdir) \
+		-j $(num_threads) \
+		--target-dir $(lab_wrkdir) \
+		--root $(wrkdir)
 
 all: $(fit) $(vfat_image) $(bootloaders-y)
 	@echo

@@ -34,3 +34,12 @@
 [submodule "clang-built-linux"]
 	path = clang-built-linux
 	url = https://github.com/ClangBuiltLinux/tc-build
+[submodule "lab"]
+	path = lab
+	url = git@github.com:ConchuOD/lab.git
+[submodule "ykush"]
+	path = ykush
+	url = https://github.com/Yepkit/ykush
+[submodule "ykurcmd"]
+	path = ykurcmd
+	url = https://github.com/Yepkit/ykurcmd
