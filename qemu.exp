@@ -1,0 +1,21 @@
+#!/usr/bin/expect -f
+
+# Wait enough (forever) until a long-time boot
+set timeout -1
+
+# Start the guest VM
+spawn /stuff/qemu/build/qemu-system-riscv64 -M microchip-icicle-kit \
+		-m 2G -smp 5 \
+		-kernel ./work/vmlinux.bin \
+		-dtb ./work/riscvpc.dtb \
+		-initrd ./work/initramfs.cpio.gz \
+		-display none -serial null \
+		-serial stdio
+
+expect "buildroot login: "
+send "root\n"
+
+expect "# "
+send "poweroff\n"
+
+expect "reboot: System halted"
