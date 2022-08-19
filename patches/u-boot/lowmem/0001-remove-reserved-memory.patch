@@ -1,0 +1,75 @@
+From 0a65556746815b25fca8109141e5b42390215686 Mon Sep 17 00:00:00 2001
+From: Conor Dooley <mail@conchuod.ie>
+Date: Thu, 18 Aug 2022 21:40:23 +0100
+Subject: [PATCH] test
+
+Signed-off-by: Conor Dooley <mail@conchuod.ie>
+---
+ arch/riscv/dts/microchip-mpfs-icicle-kit.dts | 51 --------------------
+ 1 file changed, 51 deletions(-)
+
+diff --git a/arch/riscv/dts/microchip-mpfs-icicle-kit.dts b/arch/riscv/dts/microchip-mpfs-icicle-kit.dts
+index 287ef3d23b..8c2b3bfddc 100644
+--- a/arch/riscv/dts/microchip-mpfs-icicle-kit.dts
++++ b/arch/riscv/dts/microchip-mpfs-icicle-kit.dts
+@@ -28,57 +28,6 @@
+ 		timebase-frequency = <RTCCLK_FREQ>;
+ 	};
+ 
+-	reserved-memory {
+-		ranges;
+-		#size-cells = <2>;
+-		#address-cells = <2>;
+-
+-		fabricbuf0: fabricbuf@0 {
+-			compatible = "shared-dma-pool";
+-			reg = <0x0 0xae000000 0x0 0x2000000>;
+-			label = "fabricbuf0-ddr-c";
+-		};
+-
+-		fabricbuf1: fabricbuf@1 {
+-			compatible = "shared-dma-pool";
+-			reg = <0x0 0xc0000000 0x0 0x8000000>;
+-			label = "fabricbuf1-ddr-nc";
+-		};
+-
+-		fabricbuf2: fabricbuf@2 {
+-			compatible = "shared-dma-pool";
+-			reg = <0x0 0xd8000000 0x0 0x8000000>;
+-			label = "fabricbuf2-ddr-nc-wcb";
+-		};
+-	};
+-
+-	udmabuf0 {
+-		compatible = "ikwzm,u-dma-buf";
+-		device-name = "udmabuf-ddr-c0";
+-		minor-number = <0>;
+-		size = <0x0 0x2000000>;
+-		memory-region = <&fabricbuf0>;
+-		sync-mode = <3>;
+-	};
+-
+-	udmabuf1 {
+-		compatible = "ikwzm,u-dma-buf";
+-		device-name = "udmabuf-ddr-nc0";
+-		minor-number = <1>;
+-		size = <0x0 0x8000000>;
+-		memory-region = <&fabricbuf1>;
+-		sync-mode = <3>;
+-	};
+-
+-	udmabuf2 {
+-		compatible = "ikwzm,u-dma-buf";
+-		device-name = "udmabuf-ddr-nc-wcb0";
+-		minor-number = <2>;
+-		size = <0x0 0x8000000>;
+-		memory-region = <&fabricbuf2>;
+-		sync-mode = <3>;
+-	};
+-
+ 	ddrc_cache_lo: memory@80000000 {
+ 		device_type = "memory";
+ 		reg = <0x0 0x80000000 0x0 0x2e000000>;
+-- 
+2.37.1
+
