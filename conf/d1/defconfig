@@ -231,4 +231,12 @@ CONFIG_RCU_EQS_DEBUG=y
 # CONFIG_RUNTIME_TESTING_MENU is not set
 CONFIG_MEMTEST=y
 
-CONFIG_CMDLINE="root=/dev/nfs ip=dhcp nfsrootdebug nfsroot=192.168.2.5:/stuff/nfs_share earlycon console=ttyS0,115200"
+CONFIG_CMDLINE="root=/dev/nfs rw ip=dhcp debug nfsroot=192.168.2.5:/stuff/nfs_share,tcp,v3 rdinit=/usr/sbin/init rootwait=10 earlycon console=ttyS0,115200"
+CONFIG_NFS_FS=y
+CONFIG_NFS_V3_ACL=y
+CONFIG_NFS_V4=y
+CONFIG_NFS_V4_1=y
+CONFIG_NFS_V4_2=y
+CONFIG_NFS_V4_1_MIGRATION=y
+CONFIG_ROOT_NFS=y
+CONFIG_NFS_V4_2_READ_PLUS=y

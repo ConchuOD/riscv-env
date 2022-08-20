@@ -3,9 +3,7 @@
 
 setenv autoload no;
 dhcp;
-setenv serverip 192.168.2.5
-# tftp ${fileaddr} d1-vmlinux.bin
-# booti ${fileaddr} - ${fdtcontroladdr}
+setenv serverip 192.168.2.5;
 
 # cp work/initramfs.cpio.gz /srv/tftp/d1.cpio.gz && pushd /srv/tftp && mkimage -A riscv -O linux -T ramdisk -C gzip -d d1.cpio.gz d1.uImage && popd
 # tftp 0x44000000 d1-vmlinux.bin
@@ -13,4 +11,9 @@ setenv serverip 192.168.2.5
 # booti 0x44000000 0x54000000 ${fdtcontroladdr}
 
 tftp 0x54000000 d1-fitImage.fit
-bootm 0x54000000
+bootm start 0x54000000
+bootm loados 0x54000000
+bootm ramdisk;
+bootm prep;
+fdt memory 0x40000000 0x20000000
+bootm go;
