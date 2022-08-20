@@ -26,7 +26,8 @@ CONFIG_SOC_STARFIVE=y
 CONFIG_SOC_VIRT=y
 CONFIG_SMP=y
 CONFIG_HOTPLUG_CPU=y
-CONFIG_CMDLINE="root=/dev/nfs ip=dhcp debug nfsroot=192.168.2.5:/stuff/nfs_share earlycon"
+CONFIG_CMDLINE="earlycon"
+# CONFIG_CMDLINE="root=/dev/nfs rw ip=dhcp debug nfsroot=192.168.2.5:/stuff/nfs_share,tcp,v3 rdinit=/usr/sbin/init rootwait=10 earlycon"
 CONFIG_PM=y
 CONFIG_CPU_IDLE=y
 CONFIG_CPU_FREQ=y
