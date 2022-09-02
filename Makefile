@@ -223,10 +223,17 @@ qemu-icicle:
 		-initrd $(initramfs) \
 		-display none -serial null \
 		-serial stdio
-# -chardev socket,id=serial1,path=serial1.sock,server=on,wait=on \
-# -serial chardev:serial1
-# -bios $(wrkdir)/binaries/hss.bin \
--append "root=/dev/vda ro" \
+
+qemu-icicle-hss:
+	$(QEMU)/qemu-system-riscv64 -s -S -M microchip-icicle-kit \
+		-m 2G -smp 5 \
+		-chardev socket,id=serial1,path=serial1.sock,server=on,wait=on \
+		-display none -serial stdio \
+		-bios $(wrkdir)/hss-qemu.bin \
+		-sd work/sdcard.img \
+		-serial chardev:serial1
+# 
+#-append "root=/dev/vda ro" \
 
 # -nic user,model=cadence_gem \
 # -nic tap,ifname=tap,model=cadence_gem,script=no \
