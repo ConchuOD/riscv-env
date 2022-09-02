@@ -495,6 +495,7 @@ $(payload_generator_tarball):
 
 $(hss_payload_generator): $(payload_generator_tarball)
 #	tar -xzf $(payload_generator_tarball) -C $(wrkdir)
+	- rm -rf $(wrkdir)/payload_gen
 	unzip $(payload_generator_tarball) -d $(wrkdir)/payload_gen
 	cp $(wrkdir)/payload_gen/hss-payload-generator/binaries/hss-payload-generator $(wrkdir)
 
