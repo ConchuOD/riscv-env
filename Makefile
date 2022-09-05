@@ -28,7 +28,7 @@ endif
 include conf/$(DEVKIT)/board.mk
 
 LLVM_DIR ?= $(CURDIR)/toolchain/llvm
-GCC_DIR ?= $(CURDIR)/toolchain
+GCC_DIR ?= $(CURDIR)/toolchain/gcc-11
 SPARSE_DIR ?= $(CURDIR)/sparse
 
 PATH := $(SPARSE_DIR):/$(LLVM_DIR)/bin:$(GCC_DIR)/bin:$(PATH)
@@ -39,7 +39,7 @@ llvm_srcdir := $(srcdir)/llvm
 llvm_wrkdir := $(wrkdir)/llvm
 toolchain_srcdir := $(srcdir)/riscv-gnu-toolchain
 toolchain_wrkdir := $(wrkdir)/riscv-gnu-toolchain
-toolchain_dest := $(CURDIR)/toolchain
+toolchain_dest := $(CURDIR)/toolchain/gcc-11
 target := riscv64-unknown-linux-gnu
 CROSS_COMPILE := $(target)-
 target_gdb := $(CROSS_COMPILE)gdb
@@ -170,6 +170,7 @@ random-config:
 		ARCH=riscv \
 		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_CC) \
 		PATH=$(PATH) \
+		W=1 C=1 \
 		vmlinux -j$(num_threads)
 
 .PHONY: allmodconfig
@@ -325,7 +326,7 @@ CROSS_COMPILE_CC: $(toolchain_srcdir)
 		--with-abi=$(ABI) \
 		--enable-linux
 	$(MAKE) -C $(toolchain_wrkdir) -j$(num_threads)
-	sed 's/^#define LINUX_VERSION_CODE.*/#define LINUX_VERSION_CODE 332032/' -i $(toolchain_dest)/sysroot/usr/include/linux/version.h
+# sed 's/^#define LINUX_VERSION_CODE.*/#define LINUX_VERSION_CODE 332032/' -i $(toolchain_dest)/sysroot/usr/include/linux/version.h
 endif
 
 .PHONY: clang-built-linux sparse
