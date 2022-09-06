@@ -6,7 +6,7 @@ setenv partitions "name=u-boot,start=4M,size=1M,type=21686148-6449-6E6F-744E-656
 setenv autoload no;
 dhcp;
 setenv serverip 192.168.2.5
-tftp  ${fileaddr}fitImage.fit
+tftp ${fileaddr} fitImage.fit
 bootm start ${fileaddr};
 bootm loados ${fileaddr};
 bootm ramdisk;
