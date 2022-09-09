@@ -154,7 +154,7 @@ tftp-boot:
 	$(MAKE) clean-linux DEVKIT=$(DEVKIT)
 	$(MAKE) all W=1 C=1 DEVKIT=$(DEVKIT) 2>&1 | tee logs/tftp.log
 	cp $(fit) /srv/tftp/$(DEVKIT)-fitImage.fit
-	cp $(uboot_s_scr) /srv/tftp/$(tftp_boot_scr)
+	cp $(uboot_s_scr) /srv/tftp/$(DEVKIT)-boot.scr
 	cp $(vmlinux_bin) /srv/tftp/$(DEVKIT)-vmlinux.bin
 	cp $(uimage) /srv/tftp/$(DEVKIT).uImage
 	cd $(linux_srcdir) && ./scripts/clang-tools/gen_compile_commands.py ${linux_wrkdir}
@@ -453,7 +453,7 @@ $(device_tree_blob): $(vmlinux)
 	cp $(linux_dtb) $(device_tree_blob)
 
 $(fit): $(uboot_s) $(uimage) $(vmlinux_bin) $(initramfs) $(device_tree_blob) $(its_file) $(kernel-modules-install-stamp)
-	PATH=$(PATH) $(buildroot_initramfs_wrkdir)/build/uboot-$(UBOOT_VERSION)/tools/mkimage -f $(its_file) -A riscv -O linux -T flat_dt $@
+	PATH=$(PATH) mkimage -f $(its_file) -A riscv -O linux -T flat_dt $@
 
 $(uimage): $(initramfs)
 	mkimage -A riscv -O linux -T ramdisk -C gzip -d $< $@ 
