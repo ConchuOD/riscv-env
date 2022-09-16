@@ -2,12 +2,10 @@
 
 # this assumes ${fileaddr} is already set!!
 
-setenv autoload no;
-dhcp;
-setenv serverip 10.205.160.53
-tftp 0x1030000000 fitImage.fit
-bootm start 0x1030000000;
-bootm loados 0x1030000000;
+load mmc 0:2 ${fileaddr} fitImage.fit;
+bootm start ${fileaddr};
+bootm loados ${fileaddr};
+# Try to load a ramdisk if available inside fitImage
 bootm ramdisk;
 bootm prep;
 fdt set /soc/ethernet@20112000 mac-address ${icicle_mac_addr0};
