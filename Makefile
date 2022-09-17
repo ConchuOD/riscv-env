@@ -189,7 +189,6 @@ allmodconfig:
 		C=1 \
 		-j$(num_threads)
 
-
 smatch:
 	$(MAKE) clean-linux
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
