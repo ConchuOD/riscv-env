@@ -192,7 +192,6 @@ allmodconfig:
 		ARCH=riscv \
 		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_CC) \
 		PATH=$(PATH) \
-		C=1 \
 		modules -j$(num_threads)
 
 smatch:
