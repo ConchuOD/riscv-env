@@ -187,12 +187,8 @@ allmodconfig:
 		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_CC) \
 		PATH=$(PATH) \
 		C=1 \
-		vmlinux -j$(num_threads)
-	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
-		ARCH=riscv \
-		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_CC) \
-		PATH=$(PATH) \
-		modules -j$(num_threads)
+		-j$(num_threads)
+
 
 smatch:
 	$(MAKE) clean-linux
