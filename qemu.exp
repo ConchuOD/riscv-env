@@ -3,14 +3,22 @@
 # Wait enough (forever) until a long-time boot
 set timeout -1
 
-# Start the guest VM
-spawn /stuff/qemu/build/qemu-system-riscv64 -M microchip-icicle-kit \
-		-m 2G -smp 5 \
+#Start the guest VM
+#spawn /stuff/qemu/build/qemu-system-riscv64 -M microchip-icicle-kit \
+#		-m 2G -smp 5 \
+#		-kernel ./work/vmlinux.bin \
+#		-dtb ./work/riscvpc.dtb \
+#		-initrd ./work/initramfs.cpio.gz \
+#		-display none -serial null \
+#		-serial stdio
+
+spawn /stuff/qemu/build/qemu-system-riscv64 -M virt \
+	-M virt -nographic \
 		-kernel ./work/vmlinux.bin \
-		-dtb ./work/riscvpc.dtb \
-		-initrd ./work/initramfs.cpio.gz \
-		-display none -serial null \
-		-serial stdio
+	-append earlycon \
+	-initrd ./work/initramfs.cpio.gz \
+	-m 512m -nodefaults -no-reboot \
+	-serial mon:stdio
 
 expect "buildroot login: "
 send "root\n"
