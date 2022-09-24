@@ -27,8 +27,11 @@ endif
 
 include conf/$(DEVKIT)/board.mk
 
-LLVM_DIR ?= $(CURDIR)/toolchain/llvm
-GCC_DIR ?= $(CURDIR)/toolchain/gcc-12
+GCC_VERSION ?= 12
+LLVM_VERSION ?= 15
+TOOLCHAIN_DIR := /stuff/toolchains
+LLVM_DIR ?= $(TOOLCHAIN_DIR)/llvm-$(LLVM_VERSION)
+GCC_DIR ?= $(TOOLCHAIN_DIR)/gcc-$(GCC_VERSION)
 SPARSE_DIR ?= $(CURDIR)/sparse
 
 PATH := $(SPARSE_DIR):/$(LLVM_DIR)/bin:$(GCC_DIR)/bin:$(PATH)
