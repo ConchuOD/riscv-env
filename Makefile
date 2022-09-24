@@ -28,7 +28,7 @@ endif
 include conf/$(DEVKIT)/board.mk
 
 LLVM_DIR ?= $(CURDIR)/toolchain/llvm
-GCC_DIR ?= $(CURDIR)/toolchain/gcc-11
+GCC_DIR ?= $(CURDIR)/toolchain/gcc-12
 SPARSE_DIR ?= $(CURDIR)/sparse
 
 PATH := $(SPARSE_DIR):/$(LLVM_DIR)/bin:$(GCC_DIR)/bin:$(PATH)
@@ -39,7 +39,7 @@ llvm_srcdir := $(srcdir)/llvm
 llvm_wrkdir := $(wrkdir)/llvm
 toolchain_srcdir := $(srcdir)/riscv-gnu-toolchain
 toolchain_wrkdir := $(wrkdir)/riscv-gnu-toolchain
-toolchain_dest := $(CURDIR)/toolchain/gcc-11
+toolchain_dest := $(GCC_DIR)
 target := riscv64-unknown-linux-gnu
 CROSS_COMPILE := $(target)-
 target_gdb := $(CROSS_COMPILE)gdb
@@ -47,10 +47,13 @@ CROSS_COMPILE_CC := $(GCC_DIR)/bin/$(CROSS_COMPILE)gcc
 
 ifneq ($(CLANG),)
 LINUX_CC := "CC=clang"
-LINUX_LLVM := "LLVM=1"
+# LINUX_LD := "LD=/stuff/out/bin/riscv64-unknown-linux-gnu-ld"
+# LINUX_IAS := "LLVM_IAS=1"
+# LINUX_LLVM := "LLVM=1"
 LINUX_CROSS := "$(target)-"
 else
 LINUX_CROSS := "$(CROSS_COMPILE)"
+# LINUX_LD := "LD=/stuff/out/bin/riscv64-unknown-linux-gnu-ld"
 endif
 
 buildroot_srcdir := $(srcdir)/buildroot
@@ -168,7 +171,7 @@ random-config:
 	cp $(CURDIR)/oldconfig $(linux_wrkdir)/.config
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
 		ARCH=riscv \
-		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_CC) \
+		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LD) $(LINUX_CC) \
 		PATH=$(PATH) \
 		W=1 C=1 \
 		vmlinux -j$(num_threads)
@@ -179,12 +182,12 @@ allmodconfig:
 	mkdir -p $(linux_wrkdir)
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
 		ARCH=riscv \
-		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_CC) \
+		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LD) $(LINUX_CC) \
 		PATH=$(PATH) \
 		allmodconfig
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
 		ARCH=riscv \
-		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_CC) \
+		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LD) $(LINUX_CC) \
 		PATH=$(PATH) \
 		C=1 \
 		-j$(num_threads)
@@ -209,6 +212,15 @@ qemu-virt:
 		-kernel $(vmlinux_bin) \
 		-append "root=/dev/vda ro" \
 		-initrd $(initramfs)
+
+qemu-clang:
+	$(QEMU)/qemu-system-riscv64 -M virt \
+		-M virt -nographic \
+		-kernel $(vmlinux_bin) \
+		-append earlycon \
+		-initrd $(initramfs) \
+		-m 512m -nodefaults -no-reboot \
+		-serial mon:stdio
 
 qemu-icicle:
 	$(QEMU)/qemu-system-riscv64 -M microchip-icicle-kit \
@@ -379,14 +391,14 @@ $(linux_wrkdir)/.config: $(linux_srcdir) $(CROSS_COMPILE_CC)
 	mkdir -p $(dir $@)
 ifneq (,$(findstring $(confdir),$(linux_defconfig)))
 	cp $(linux_defconfig) $@
-	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_CC) ARCH=riscv olddefconfig
+	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LD) $(LINUX_CC) ARCH=riscv olddefconfig
 else
-	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_CC) ARCH=riscv $(linux_defconfig)
+	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LD) $(LINUX_CC) ARCH=riscv $(linux_defconfig)
 endif
 ifeq ($(ISA),$(filter rv32%,$(ISA)))
 	sed 's/^.*CONFIG_ARCH_RV32I.*$$/CONFIG_ARCH_RV32I=y/' -i $@
 	sed 's/^.*CONFIG_ARCH_RV64I.*$$/CONFIG_ARCH_RV64I=n/' -i $@
-	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_CC) ARCH=riscv rv32_defconfig
+	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LD) $(LINUX_CC) ARCH=riscv rv32_defconfig
 endif
 
 $(initramfs).d: $(buildroot_initramfs_sysroot) $(kernel-modules-install-stamp)
@@ -407,7 +419,7 @@ $(initramfs): $(initramfs_uc)
 $(vmlinux): $(linux_wrkdir)/.config $(CROSS_COMPILE_CC)
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
 		ARCH=riscv \
-		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_CC) \
+		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LD) $(LINUX_CC) \
 		PATH=$(PATH) \
 		vmlinux -j$(num_threads)
 
@@ -421,7 +433,7 @@ $(vmlinux_bin): $(vmlinux)
 $(kernel-modules-stamp): $(linux_srcdir) $(vmlinux)
 	$(MAKE) -C $< O=$(linux_wrkdir) \
 		ARCH=riscv \
-		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_CC) \
+		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LD) $(LINUX_CC) \
 		PATH=$(PATH) \
 		modules -j$(num_threads)
 	touch $@
@@ -438,12 +450,12 @@ $(kernel-modules-install-stamp): $(linux_srcdir) $(buildroot_initramfs_sysroot) 
 	
 .PHONY: linux-menuconfig
 linux-menuconfig: $(linux_wrkdir)/.config
-	$(MAKE) -C $(linux_srcdir) O=$(dir $<) ARCH=riscv menuconfig CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_CC)
-	$(MAKE) -C $(linux_srcdir) O=$(dir $<) ARCH=riscv savedefconfig CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_CC)
+	$(MAKE) -C $(linux_srcdir) O=$(dir $<) ARCH=riscv menuconfig CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LD) $(LINUX_CC)
+	$(MAKE) -C $(linux_srcdir) O=$(dir $<) ARCH=riscv savedefconfig CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LD) $(LINUX_CC)
 	cp $(dir $<)/defconfig $(linux_defconfig)
 
 $(device_tree_blob): $(vmlinux)
-	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_CC) ARCH=riscv dtbs
+	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LD) $(LINUX_CC) ARCH=riscv dtbs
 	cp $(linux_dtb) $(device_tree_blob)
 
 $(fit): $(uboot_s) $(uimage) $(vmlinux_bin) $(initramfs) $(device_tree_blob) $(its_file) $(kernel-modules-install-stamp)
