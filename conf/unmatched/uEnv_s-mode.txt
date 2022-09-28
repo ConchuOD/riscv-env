@@ -1,0 +1,10 @@
+# This is the s-mode U-Boot script for the {,lc-}mpfs development kits.
+
+# this assumes ${fileaddr} is already set!!
+
+setenv autoload no;
+dhcp;
+setenv serverip 192.168.2.5
+tftp ${fileaddr} unmatched-fitImage.fit
+bootm ${fileaddr};
+
