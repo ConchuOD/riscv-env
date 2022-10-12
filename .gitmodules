@@ -27,7 +27,7 @@
 	url = https://github.com/error27/smatch
 [submodule "sparse"]
 	path = sparse
-	url = https://git.kernel.org/pub/scm/devel/sparse/sparse.git/
+	url = https://github.com/sparse/smatch
 [submodule "llvm-project"]
 	path = llvm
 	url = git@github.com:llvm/llvm-project.git
@@ -43,3 +43,6 @@
 [submodule "ykurcmd"]
 	path = ykurcmd
 	url = https://github.com/conchuod/ykurcmd
+[submodule "u-boot"]
+	path = u-boot
+	url = https://github.com/u-boot/u-boot
