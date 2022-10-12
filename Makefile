@@ -50,13 +50,17 @@ CROSS_COMPILE_CC := $(GCC_DIR)/bin/$(CROSS_COMPILE)gcc
 
 ifneq ($(CLANG),)
 LINUX_CC := "CC=clang"
-# LINUX_LD := "LD=/stuff/out/bin/riscv64-unknown-linux-gnu-ld"
-# LINUX_IAS := "LLVM_IAS=1"
-# LINUX_LLVM := "LLVM=1"
+# LINUX_CC := "CC=riscv64-unknown-linux-gnu-gcc"
+# LINUX_LD := "LD=/stuff/toolchains/binutils-2.35/bin/riscv64-unknown-linux-gnu-ld"
+# LINUX_LD := "LD=/stuff/toolchains/gcc-12/bin/riscv64-unknown-linux-gnu-ld"
+# LINUX_LD := "LD=riscv64-linux-gnu-ld.bfd" # 2.30
+# LINUX_IAS := "LLVM_IAS=0"
+LINUX_LLVM := "LLVM=1"
 LINUX_CROSS := "$(target)-"
 else
 LINUX_CROSS := "$(CROSS_COMPILE)"
-# LINUX_LD := "LD=/stuff/out/bin/riscv64-unknown-linux-gnu-ld"
+# LINUX_LD := "LD=/stuff/toolchains/binutils-2.35/bin/riscv64-unknown-linux-gnu-ld"
+# LINUX_LD := "LD=/stuff/toolchains/llvm-15/bin/ld.lld"
 endif
 
 buildroot_srcdir := $(srcdir)/buildroot
@@ -223,7 +227,8 @@ qemu-clang:
 		-append earlycon \
 		-initrd $(initramfs) \
 		-m 512m -nodefaults -no-reboot \
-		-serial mon:stdio
+		-serial mon:stdio \
+		-drive file=$(wrkdir)/stage4-disk.img,format=raw
 
 qemu-icicle:
 	$(QEMU)/qemu-system-riscv64 -M microchip-icicle-kit \
@@ -506,8 +511,8 @@ $(rootfs): $(buildroot_rootfs_ext)
 
 $(buildroot_initramfs_sysroot): $(buildroot_initramfs_sysroot_stamp)
 
-$(payload_generator_tarball): 
-	mkdir -p  $(srcdir)/br-dl-dir/
+$(payload_generator_tarball):
+	mkdir -p $(srcdir)/br-dl-dir/
 	wget $(payload_generator_url) -O $(payload_generator_tarball) --show-progress
 
 $(hss_payload_generator): $(payload_generator_tarball)
