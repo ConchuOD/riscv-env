@@ -42,4 +42,4 @@
 	url = https://github.com/Yepkit/ykush
 [submodule "ykurcmd"]
 	path = ykurcmd
-	url = https://github.com/Yepkit/ykurcmd
+	url = https://github.com/conchuod/ykurcmd
