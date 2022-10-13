@@ -211,7 +211,7 @@ allmodconfig:
 		PATH=$(PATH) \
 		C=1 \
 		KBUILD_BUILD_TIMESTAMP='' \
-		-j$(num_threads)
+		-j$(num_threads) 2>&1 | tee log.log
 
 smatch:
 	$(MAKE) clean-linux
