@@ -4,8 +4,8 @@
 
 setenv fileaddr 0x90000000
 setenv autoload no;
-dhcp;
 setenv serverip 10.205.160.53
+dhcp;
 tftp ${fileaddr} aries-fitImage.fit
 bootm start ${fileaddr};
 bootm loados ${fileaddr};
