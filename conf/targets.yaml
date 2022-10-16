@@ -1,0 +1,6 @@
+---
+targets:
+  default:
+    cc: "ccache clang"
+    llvm: 1
+
