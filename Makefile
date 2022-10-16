@@ -27,7 +27,7 @@ endif
 
 include conf/$(DEVKIT)/board.mk
 
-GCC_VERSION ?= 12
+GCC_VERSION ?= 11
 LLVM_VERSION ?= 15
 TOOLCHAIN_DIR := /stuff/toolchains
 LLVM_DIR ?= $(TOOLCHAIN_DIR)/llvm-$(LLVM_VERSION)
@@ -49,18 +49,19 @@ target_gdb := $(CROSS_COMPILE)gdb
 CROSS_COMPILE_CC := $(GCC_DIR)/bin/$(CROSS_COMPILE)gcc
 
 ifneq ($(CLANG),)
-LINUX_CC := "CC=clang"
-# LINUX_CC := "CC=riscv64-unknown-linux-gnu-gcc"
-# LINUX_LD := "LD=/stuff/toolchains/binutils-2.35/bin/riscv64-unknown-linux-gnu-ld"
-# LINUX_LD := "LD=/stuff/toolchains/gcc-12/bin/riscv64-unknown-linux-gnu-ld"
-# LINUX_LD := "LD=riscv64-linux-gnu-ld.bfd" # 2.30
-# LINUX_IAS := "LLVM_IAS=0"
-LINUX_LLVM := "LLVM=1"
-LINUX_CROSS := "$(target)-"
+LINUX_CC ?= "CC=ccache clang"
+# # LINUX_CC ?= "CC=riscv64-unknown-linux-gnu-gcc"
+# # LINUX_LD ?= "LD=/stuff/toolchains/binutils-2.35/bin/riscv64-unknown-linux-gnu-ld"
+# # LINUX_LD ?= "LD=/stuff/toolchains/gcc-12/bin/riscv64-unknown-linux-gnu-ld"
+# # LINUX_LD ?= "LD=riscv64-linux-gnu-ld.bfd" # 2.30
+# # LINUX_IAS ?= "LLVM_IAS=0"
+LINUX_LLVM ?= "LLVM=1"
+LINUX_CROSS ?= "$(target)-"
 else
-LINUX_CROSS := "$(CROSS_COMPILE)"
-# LINUX_LD := "LD=/stuff/toolchains/binutils-2.35/bin/riscv64-unknown-linux-gnu-ld"
-# LINUX_LD := "LD=/stuff/toolchains/llvm-15/bin/ld.lld"
+LINUX_CC ?= "CC=ccache $(CROSS_COMPILE_CC)"
+LINUX_CROSS ?= "$(CROSS_COMPILE)"
+# # LINUX_LD ?= "LD=/stuff/toolchains/binutils-2.35/bin/riscv64-unknown-linux-gnu-ld"
+# # LINUX_LD ?= "LD=/stuff/toolchains/llvm-15/bin/ld.lld"
 endif
 
 buildroot_srcdir := $(srcdir)/buildroot
@@ -169,6 +170,15 @@ tftp-boot:
 	cp $(uimage) /srv/tftp/$(DEVKIT).uImage
 	cd $(linux_srcdir) && ./scripts/clang-tools/gen_compile_commands.py ${linux_wrkdir}
 
+tftp-boot-py:
+	$(MAKE) clean-linux DEVKIT=$(DEVKIT)
+	$(MAKE) all W=1 C=1 DEVKIT=$(DEVKIT)
+	cp $(fit) /srv/tftp/$(DEVKIT)-fitImage.fit
+	cp $(uboot_s_scr) /srv/tftp/$(DEVKIT)-boot.scr
+	cp $(vmlinux_bin) /srv/tftp/$(DEVKIT)-vmlinux.bin
+	cp $(uimage) /srv/tftp/$(DEVKIT).uImage
+	cd $(linux_srcdir) && ./scripts/clang-tools/gen_compile_commands.py ${linux_wrkdir}
+
 reboot: $(lab)
 	$(lab) -f reboot -b $(DEVKIT) -c $(lab_config)
 
@@ -181,6 +191,7 @@ random-config:
 		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LD) $(LINUX_CC) \
 		PATH=$(PATH) \
 		W=1 C=1 \
+		KBUILD_BUILD_TIMESTAMP='' \
 		vmlinux -j$(num_threads)
 
 .PHONY: allmodconfig
@@ -197,6 +208,7 @@ allmodconfig:
 		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LD) $(LINUX_CC) \
 		PATH=$(PATH) \
 		C=1 \
+		KBUILD_BUILD_TIMESTAMP='' \
 		-j$(num_threads)
 
 smatch:
@@ -210,6 +222,7 @@ smatch:
 		ARCH=riscv \
 		CROSS_COMPILE=$(CROSS_COMPILE) \
 		PATH=$(PATH) \
+		KBUILD_BUILD_TIMESTAMP='' \
 		C=2 CHECK=$(srcdir)/smatch/smatch \
 		$(FILE)
 
@@ -429,6 +442,7 @@ $(vmlinux): $(linux_wrkdir)/.config $(CROSS_COMPILE_CC)
 		ARCH=riscv \
 		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LD) $(LINUX_CC) \
 		PATH=$(PATH) \
+		KBUILD_BUILD_TIMESTAMP='' \
 		vmlinux -j$(num_threads)
 
 $(vmlinux_stripped): $(vmlinux)
