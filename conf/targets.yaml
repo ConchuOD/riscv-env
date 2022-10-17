@@ -4,3 +4,28 @@ targets:
     cc: "ccache clang"
     llvm: 1
 
+  gcc:
+    cc: "ccache $(CROSS_COMPILE_CC)"
+    llvm: 0
+
+  old_binutils:
+    cc: "ccache $(CROSS_COMPILE_CC)"
+    gcc_version: 12
+    ld_path: "/stuff/toolchains/binutils-2.35/bin/riscv64-unknown-linux-gnu-ld"
+    llvm: 0
+
+  llvm_gas:
+    cc: "ccache clang"
+    gcc_version: 12
+    llvm_ias: 0
+    llvm: 1
+
+  llvm_ld:
+    cc: "ccache clang"
+    ld_path: "/stuff/toolchains/gcc-$(GCC_VERSION)/bin/riscv64-unknown-linux-gnu-ld"
+    llvm: 1
+
+  llvm_gcc:
+    cc: "ccache $(CROSS_COMPILE_CC)"
+    llvm: 1
+

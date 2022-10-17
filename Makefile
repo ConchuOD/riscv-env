@@ -48,20 +48,22 @@ CROSS_COMPILE := $(target)-
 target_gdb := $(CROSS_COMPILE)gdb
 CROSS_COMPILE_CC := $(GCC_DIR)/bin/$(CROSS_COMPILE)gcc
 
-ifneq ($(CLANG),)
-LINUX_CC ?= "CC=ccache clang"
 # # LINUX_CC ?= "CC=riscv64-unknown-linux-gnu-gcc"
 # # LINUX_LD ?= "LD=/stuff/toolchains/binutils-2.35/bin/riscv64-unknown-linux-gnu-ld"
 # # LINUX_LD ?= "LD=/stuff/toolchains/gcc-12/bin/riscv64-unknown-linux-gnu-ld"
-# # LINUX_LD ?= "LD=riscv64-linux-gnu-ld.bfd" # 2.30
 # # LINUX_IAS ?= "LLVM_IAS=0"
-LINUX_LLVM ?= "LLVM=1"
-LINUX_CROSS ?= "$(target)-"
-else
-LINUX_CC ?= "CC=ccache $(CROSS_COMPILE_CC)"
-LINUX_CROSS ?= "$(CROSS_COMPILE)"
+
 # # LINUX_LD ?= "LD=/stuff/toolchains/binutils-2.35/bin/riscv64-unknown-linux-gnu-ld"
 # # LINUX_LD ?= "LD=/stuff/toolchains/llvm-15/bin/ld.lld"
+
+LINUX_IAS ?= "LLVM_IAS=$(CLANG)""
+LINUX_CROSS ?= "$(CROSS_COMPILE)"
+
+ifeq ($(CLANG),1)
+LINUX_CC ?= "CC=ccache clang"
+LINUX_LLVM ?= "LLVM=$(CLANG)"
+else
+LINUX_CC ?= "CC=ccache $(CROSS_COMPILE_CC)"
 endif
 
 buildroot_srcdir := $(srcdir)/buildroot
@@ -188,7 +190,7 @@ random-config:
 	cp $(CURDIR)/oldconfig $(linux_wrkdir)/.config
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
 		ARCH=riscv \
-		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LD) $(LINUX_CC) \
+		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LLD) $(LINUX_AS) $(LINUX_LD) $(LINUX_CC) \
 		PATH=$(PATH) \
 		W=1 C=1 \
 		KBUILD_BUILD_TIMESTAMP='' \
@@ -200,12 +202,12 @@ allmodconfig:
 	mkdir -p $(linux_wrkdir)
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
 		ARCH=riscv \
-		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LD) $(LINUX_CC) \
+		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LLD) $(LINUX_AS) $(LINUX_LD) $(LINUX_CC) \
 		PATH=$(PATH) \
 		allmodconfig
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
 		ARCH=riscv \
-		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LD) $(LINUX_CC) \
+		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LLD) $(LINUX_AS) $(LINUX_LD) $(LINUX_CC) \
 		PATH=$(PATH) \
 		C=1 \
 		KBUILD_BUILD_TIMESTAMP='' \
@@ -412,14 +414,14 @@ $(linux_wrkdir)/.config: $(linux_srcdir) $(CROSS_COMPILE_CC)
 	mkdir -p $(dir $@)
 ifneq (,$(findstring $(confdir),$(linux_defconfig)))
 	cp $(linux_defconfig) $@
-	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LD) $(LINUX_CC) ARCH=riscv olddefconfig
+	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LLD) $(LINUX_AS) $(LINUX_LD) $(LINUX_CC) ARCH=riscv olddefconfig
 else
-	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LD) $(LINUX_CC) ARCH=riscv $(linux_defconfig)
+	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LLD) $(LINUX_AS) $(LINUX_LD) $(LINUX_CC) ARCH=riscv $(linux_defconfig)
 endif
 ifeq ($(ISA),$(filter rv32%,$(ISA)))
 	sed 's/^.*CONFIG_ARCH_RV32I.*$$/CONFIG_ARCH_RV32I=y/' -i $@
 	sed 's/^.*CONFIG_ARCH_RV64I.*$$/CONFIG_ARCH_RV64I=n/' -i $@
-	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LD) $(LINUX_CC) ARCH=riscv rv32_defconfig
+	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LLD) $(LINUX_AS) $(LINUX_LD) $(LINUX_CC) ARCH=riscv rv32_defconfig
 endif
 
 $(initramfs).d: $(buildroot_initramfs_sysroot) $(kernel-modules-install-stamp)
@@ -440,7 +442,7 @@ $(initramfs): $(initramfs_uc)
 $(vmlinux): $(linux_wrkdir)/.config $(CROSS_COMPILE_CC)
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
 		ARCH=riscv \
-		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LD) $(LINUX_CC) \
+		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LLD) $(LINUX_AS) $(LINUX_LD) $(LINUX_CC) \
 		PATH=$(PATH) \
 		KBUILD_BUILD_TIMESTAMP='' \
 		vmlinux -j$(num_threads)
@@ -455,7 +457,7 @@ $(vmlinux_bin): $(vmlinux)
 $(kernel-modules-stamp): $(linux_srcdir) $(vmlinux)
 	$(MAKE) -C $< O=$(linux_wrkdir) \
 		ARCH=riscv \
-		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LD) $(LINUX_CC) \
+		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LLD) $(LINUX_AS) $(LINUX_LD) $(LINUX_CC) \
 		PATH=$(PATH) \
 		modules -j$(num_threads)
 	touch $@
@@ -472,12 +474,12 @@ $(kernel-modules-install-stamp): $(linux_srcdir) $(buildroot_initramfs_sysroot) 
 	
 .PHONY: linux-menuconfig
 linux-menuconfig: $(linux_wrkdir)/.config
-	$(MAKE) -C $(linux_srcdir) O=$(dir $<) ARCH=riscv menuconfig CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LD) $(LINUX_CC)
-	$(MAKE) -C $(linux_srcdir) O=$(dir $<) ARCH=riscv savedefconfig CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LD) $(LINUX_CC)
+	$(MAKE) -C $(linux_srcdir) O=$(dir $<) ARCH=riscv menuconfig CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LLD) $(LINUX_AS) $(LINUX_LD) $(LINUX_CC)
+	$(MAKE) -C $(linux_srcdir) O=$(dir $<) ARCH=riscv savedefconfig CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LLD) $(LINUX_AS) $(LINUX_LD) $(LINUX_CC)
 	cp $(dir $<)/defconfig $(linux_defconfig)
 
 $(device_tree_blob): $(vmlinux)
-	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LD) $(LINUX_CC) ARCH=riscv dtbs
+	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LLD) $(LINUX_AS) $(LINUX_LD) $(LINUX_CC) ARCH=riscv dtbs
 	cp $(linux_dtb) $(device_tree_blob)
 
 $(fit): $(uboot_s) $(uimage) $(vmlinux_bin) $(initramfs) $(device_tree_blob) $(its_file) $(kernel-modules-install-stamp)

@@ -11,19 +11,30 @@ class Build:
         self.cc_path = try_default(config, "cc_path", "")
         self.llvm = try_default(config, "llvm", 1)
         self.llvm_ias = try_default(config, "llvm_ias", self.llvm)
-        self.as_path = try_default(config, "llvm_ias", "")
-        self.lld = try_default(config, "lld", self.llvm)
-        self.ld_path = try_default(config, "ld", "")
+        self.as_path = try_default(config, "as_path", None)
+        self.ld_path = try_default(config, "ld_path", None)
+        self.llvm_version = try_default(config, "llvm_version", 15)
+        self.gcc_version = try_default(config, "gcc_version", 12)
+        self.type = try_default(config, "type", "tftp-boot")
+        self.devkit = try_default(config, "devkit", "lowmem")
         self.dryrun = False
 
     def simple_build(self):
         command = [
                     "make",
                     f"LINUX_CC=\"CC={self.cc}\"",
+                    f"GCC_VERSION={self.gcc_version}",
+                    f"LLVM_VERSION={self.llvm_version}",
+                    f"LINUX_IAS=\"LLVM_IAS={self.llvm_ias}\"",
                     f"CLANG={self.llvm}",
-                    "tftp-boot-py",
-                    "DEVKIT=lowmem"
+                    f"{self.type}",
+                    f"DEVKIT={self.devkit}"
                   ]
+
+        if self.ld_path != None:
+            command.append(f"LINUX_LD=\"LD={self.ld_path}\"")
+        if self.as_path != None:
+            command.append(f"LINUX_AS=\"AS={self.as_path}\"")
 
         stdout = ""
 
