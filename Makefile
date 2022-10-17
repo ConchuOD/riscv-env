@@ -194,7 +194,7 @@ random-config:
 		PATH=$(PATH) \
 		W=1 C=1 \
 		KBUILD_BUILD_TIMESTAMP='' \
-		vmlinux -j$(num_threads)
+		-j$(num_threads)
 
 .PHONY: allmodconfig
 allmodconfig:
@@ -445,7 +445,7 @@ $(vmlinux): $(linux_wrkdir)/.config $(CROSS_COMPILE_CC)
 		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LLD) $(LINUX_AS) $(LINUX_LD) $(LINUX_CC) \
 		PATH=$(PATH) \
 		KBUILD_BUILD_TIMESTAMP='' \
-		vmlinux -j$(num_threads)
+		-j$(num_threads)
 
 $(vmlinux_stripped): $(vmlinux)
 	PATH=$(PATH) $(CROSS_COMPILE)strip -o $@ $<
@@ -454,12 +454,7 @@ $(vmlinux_bin): $(vmlinux)
 	PATH=$(PATH) $(CROSS_COMPILE)objcopy -O binary $< $@
 
 .PHONY: kernel-modules kernel-modules-install
-$(kernel-modules-stamp): $(linux_srcdir) $(vmlinux)
-	$(MAKE) -C $< O=$(linux_wrkdir) \
-		ARCH=riscv \
-		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LLD) $(LINUX_AS) $(LINUX_LD) $(LINUX_CC) \
-		PATH=$(PATH) \
-		modules -j$(num_threads)
+$(kernel-modules-stamp): $(vmlinux)
 	touch $@
 
 $(kernel-modules-install-stamp): $(linux_srcdir) $(buildroot_initramfs_sysroot) $(kernel-modules-stamp)
