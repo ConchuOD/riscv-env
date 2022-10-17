@@ -56,7 +56,7 @@ CROSS_COMPILE_CC := $(GCC_DIR)/bin/$(CROSS_COMPILE)gcc
 # # LINUX_LD ?= "LD=/stuff/toolchains/binutils-2.35/bin/riscv64-unknown-linux-gnu-ld"
 # # LINUX_LD ?= "LD=/stuff/toolchains/llvm-15/bin/ld.lld"
 
-LINUX_IAS ?= "LLVM_IAS=$(CLANG)""
+LINUX_IAS ?= "LLVM_IAS=$(CLANG)"
 LINUX_CROSS ?= "$(CROSS_COMPILE)"
 
 ifeq ($(CLANG),1)
