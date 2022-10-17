@@ -1,6 +1,7 @@
 #! /bin/python3
 
 import argparse
+import re
 import subprocess
 import yaml
 
@@ -112,9 +113,9 @@ if __name__ == '__main__':
         lines = len(stdout)
         matches = 0
         for line in stdout:
-            if args.pattern in line:
+            match = re.search(args.pattern, line)
+            if match:
                 matches = matches + 1
                 print(line.strip())
         print(f"{matches} matches in {lines} lines")
-
 
