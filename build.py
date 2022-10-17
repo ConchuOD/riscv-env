@@ -36,7 +36,7 @@ class Build:
         if self.as_path != None:
             command.append(f"LINUX_AS=\"AS={self.as_path}\"")
 
-        stdout = ""
+        stdout = []
 
         if self.dry_run == True:
             print(command)
@@ -54,7 +54,7 @@ class Build:
 
             if process.stdout != None:
                 output = process.stdout.readline()
-                stdout = stdout + output
+                stdout.append(output)
                 print(output.strip())
 
             return_code = process.poll()
@@ -62,7 +62,7 @@ class Build:
             if return_code is not None:
                 # once done, we need to dump out w/e is left
                 for output in process.stdout.readlines():
-                    stdout = stdout + output
+                    stdout.append(output)
                     print(output.strip())
 
                 break
@@ -107,7 +107,14 @@ if __name__ == '__main__':
         print(stdout)
         os.exit()
 
-    if args.pattern != None and args.pattern in stdout:
-        print(stdout)
+    if args.pattern != None:
+        print(f"pattern matches for {args.pattern}:\n")
+        lines = len(stdout)
+        matches = 0
+        for line in stdout:
+            if args.pattern in line:
+                matches = matches + 1
+                print(line.strip())
+        print(f"{matches} matches in {lines} lines")
 
 
