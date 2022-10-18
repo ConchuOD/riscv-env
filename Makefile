@@ -153,6 +153,8 @@ bootloaders-$(AMP_SUPPORT) += $(amp_example)
 
 deploy_dir := $(CURDIR)/deploy
 
+random_date := "Tue Oct 18 02:52:44 PM IST 2022"
+
 ykurcmd_srcdir := $(srcdir)/ykurcmd
 ykurcmd := $(wrkdir)/.ykurcmd
 ykush_srcdir := $(srcdir)/ykush
@@ -193,7 +195,7 @@ random-config:
 		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LLD) $(LINUX_AS) $(LINUX_LD) $(LINUX_CC) \
 		PATH=$(PATH) \
 		W=1 C=1 \
-		KBUILD_BUILD_TIMESTAMP='' \
+		KBUILD_BUILD_TIMESTAMP=$(random_date) \
 		-j$(num_threads)
 
 .PHONY: allmodconfig
@@ -210,7 +212,7 @@ allmodconfig:
 		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LLD) $(LINUX_AS) $(LINUX_LD) $(LINUX_CC) \
 		PATH=$(PATH) \
 		C=1 \
-		KBUILD_BUILD_TIMESTAMP='' \
+		KBUILD_BUILD_TIMESTAMP=$(random_date) \
 		-j$(num_threads) 2>&1 | tee log.log
 
 smatch:
@@ -224,7 +226,7 @@ smatch:
 		ARCH=riscv \
 		CROSS_COMPILE=$(CROSS_COMPILE) \
 		PATH=$(PATH) \
-		KBUILD_BUILD_TIMESTAMP='' \
+		KBUILD_BUILD_TIMESTAMP=$(random_date) \
 		C=2 CHECK=$(srcdir)/smatch/smatch \
 		$(FILE)
 
@@ -444,7 +446,7 @@ $(vmlinux): $(linux_wrkdir)/.config $(CROSS_COMPILE_CC)
 		ARCH=riscv \
 		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LLD) $(LINUX_AS) $(LINUX_LD) $(LINUX_CC) \
 		PATH=$(PATH) \
-		KBUILD_BUILD_TIMESTAMP='' \
+		KBUILD_BUILD_TIMESTAMP=$(random_date) \
 		-j$(num_threads)
 
 $(vmlinux_stripped): $(vmlinux)
