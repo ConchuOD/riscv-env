@@ -8,6 +8,11 @@ targets:
     cc: "ccache $(CROSS_COMPILE_CC)"
     llvm: 0
 
+  gcc-11:
+    cc: "ccache $(CROSS_COMPILE_CC)"
+    gcc_version: 11
+    llvm: 0
+
   old_binutils:
     cc: "ccache $(CROSS_COMPILE_CC)"
     gcc_version: 12
