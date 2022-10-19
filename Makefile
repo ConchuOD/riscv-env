@@ -232,6 +232,7 @@ smatch:
 
 qemu-virt:
 	$(QEMU)/qemu-system-riscv64 -M virt \
+		-m 2G -smp 5 \
 		-M virt -nographic \
 		-kernel $(vmlinux_bin) \
 		-append "root=/dev/vda ro" \
@@ -539,7 +540,7 @@ $(hss_uboot_payload_bin): $(uboot_s) $(hss_payload_generator) $(bootloaders-y)
 
 .PHONY: buildroot_initramfs_sysroot vmlinux bbl fit flash_image initrd opensbi u-boot bootloaders dtbs
 buildroot_initramfs_sysroot: $(buildroot_initramfs_sysroot)
-vmlinux: $(vmlinux)
+vmlinux: $(vmlinux_bin)
 fit: $(fit)
 initrd: $(initramfs)
 u-boot: $(hss_uboot_payload_bin)
