@@ -104,10 +104,6 @@ if __name__ == '__main__':
 
     rc, stdout = build.simple_build()
 
-    if rc != 0:
-        print(stdout)
-        os.exit()
-
     if args.pattern != None:
         print(f"pattern matches for {args.pattern}:\n")
         lines = len(stdout)
