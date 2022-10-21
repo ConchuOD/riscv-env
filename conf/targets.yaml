@@ -34,3 +34,8 @@ targets:
     cc: "ccache $(CROSS_COMPILE_CC)"
     llvm: 1
 
+  vision5:
+    cc: "ccache clang"
+    llvm: 1
+    devkit: "vision5"
+
