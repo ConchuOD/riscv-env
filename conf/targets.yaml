@@ -19,9 +19,27 @@ targets:
     ld_path: "/stuff/toolchains/binutils-2.35/bin/riscv64-unknown-linux-gnu-ld"
     llvm: 0
 
+  host_binutils:
+    cc: "ccache $(CROSS_COMPILE_CC)"
+    gcc_version: 12
+    ld_path: "riscv64-linux-gnu-ld"
+    llvm: 0
+
+  11_binutils:
+    cc: "ccache $(CROSS_COMPILE_CC)"
+    gcc_version: 12
+    ld_path: "/stuff/toolchains/gcc-11/bin/riscv64-unknown-linux-gnu-ld"
+    llvm: 0
+
   llvm_gas:
     cc: "ccache clang"
     gcc_version: 12
+    llvm_ias: 0
+    llvm: 1
+
+  llvm_gas_237:
+    cc: "ccache clang"
+    gcc_version: 11
     llvm_ias: 0
     llvm: 1
 
@@ -38,4 +56,10 @@ targets:
     cc: "ccache clang"
     llvm: 1
     devkit: "vision5"
+
+  vauban:
+    cc: "ccache clang"
+    llvm: 1
+    devkit: "vauban"
+    gcc_version: 11
 
