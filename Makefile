@@ -27,6 +27,9 @@ endif
 
 include conf/$(DEVKIT)/board.mk
 
+export CCACHE_DIR := /stuff/ccache
+export CCACHE_TEMPDIR := /stuff/ccache/tmp
+
 GCC_VERSION ?= 11
 LLVM_VERSION ?= 15
 TOOLCHAIN_DIR := /stuff/toolchains
@@ -153,7 +156,7 @@ bootloaders-$(AMP_SUPPORT) += $(amp_example)
 
 deploy_dir := $(CURDIR)/deploy
 
-random_date := "Tue Oct 18 02:52:44 PM IST 2022"
+random_date := "@7"
 
 ykurcmd_srcdir := $(srcdir)/ykurcmd
 ykurcmd := $(wrkdir)/.ykurcmd
