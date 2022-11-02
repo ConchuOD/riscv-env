@@ -215,6 +215,7 @@ allmodconfig:
 		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LLD) $(LINUX_AS) $(LINUX_LD) $(LINUX_CC) \
 		PATH=$(PATH) \
 		C=1 \
+		-k \
 		KBUILD_BUILD_TIMESTAMP=$(random_date) \
 		-j$(num_threads) 2>&1 | tee log.log
 
