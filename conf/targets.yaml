@@ -2,6 +2,7 @@
 targets:
   default:
     cc: "ccache clang"
+    gcc_version: 11
     llvm: 1
 
   gcc:
@@ -63,3 +64,7 @@ targets:
     devkit: "vauban"
     gcc_version: 11
 
+  allmodconfig:
+    cc: "ccache $(CROSS_COMPILE_CC)"
+    llvm: 0
+    type: "allmodconfig"
