@@ -30,7 +30,7 @@ include conf/$(DEVKIT)/board.mk
 export CCACHE_DIR := /stuff/ccache
 export CCACHE_TEMPDIR := /stuff/ccache/tmp
 
-GCC_VERSION ?= 11
+GCC_VERSION ?= 12
 LLVM_VERSION ?= 15
 TOOLCHAIN_DIR := /stuff/toolchains
 LLVM_DIR ?= $(TOOLCHAIN_DIR)/llvm-$(LLVM_VERSION)
