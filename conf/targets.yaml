@@ -14,6 +14,16 @@ targets:
     gcc_version: 11
     llvm: 0
 
+  llvm-15:
+    cc: "ccache clang"
+    llvm_version: 15
+    llvm: 1
+
+  llvm-16:
+    cc: "ccache clang"
+    llvm_version: 16
+    llvm: 1
+
   old_binutils:
     cc: "ccache $(CROSS_COMPILE_CC)"
     gcc_version: 12
