@@ -31,7 +31,7 @@ export CCACHE_DIR := /stuff/ccache
 export CCACHE_TEMPDIR := /stuff/ccache/tmp
 
 GCC_VERSION ?= 12
-LLVM_VERSION ?= 15
+LLVM_VERSION ?= 16
 TOOLCHAIN_DIR := /stuff/toolchains
 LLVM_DIR ?= $(TOOLCHAIN_DIR)/llvm-$(LLVM_VERSION)
 GCC_DIR ?= $(TOOLCHAIN_DIR)/gcc-$(GCC_VERSION)
@@ -259,7 +259,8 @@ qemu-icicle:
 		-dtb $(wrkdir)/riscvpc.dtb \
 		-initrd $(initramfs) \
 		-display none -serial null \
-		-serial stdio
+		-serial stdio \
+		-D qemu.log -d unimp
 
 qemu-icicle-hss:
 	$(QEMU)/qemu-system-riscv64 -s -S -M microchip-icicle-kit \
