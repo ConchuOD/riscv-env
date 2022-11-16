@@ -4,7 +4,7 @@ setenv fileaddr 0x90000000
 setenv dtbaddr 0x83000000
 setenv autoload no;
 dhcp;
-setenv serverip 192.168.2.5;
+setenv serverip 192.168.2.9;
 tftp ${fileaddr} lowmem-fitImage.fit
 bootm start ${fileaddr};
 bootm loados ${fileaddr};
