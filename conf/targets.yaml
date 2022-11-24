@@ -78,3 +78,9 @@ targets:
     cc: "ccache $(CROSS_COMPILE_CC)"
     llvm: 0
     type: "allmodconfig"
+
+  allmodconfig_clang:
+    cc: "ccache clang"
+    llvm: 1
+    type: "allmodconfig"
+
