@@ -217,7 +217,7 @@ allmodconfig:
 		C=1 \
 		-k \
 		KBUILD_BUILD_TIMESTAMP=$(random_date) \
-		-j$(num_threads) 2>&1 | tee log.log
+		-j$(num_threads) 2>&1 | tee logs/allmodconfig.log
 
 smatch:
 	$(MAKE) clean-linux
