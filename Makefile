@@ -366,9 +366,13 @@ CROSS_COMPILE_CC: $(toolchain_srcdir)
 # sed 's/^#define LINUX_VERSION_CODE.*/#define LINUX_VERSION_CODE 332032/' -i $(toolchain_dest)/sysroot/usr/include/linux/version.h
 endif
 
-.PHONY: clang-built-linux sparse
+.PHONY: clang-built-linux clang-built-linux-pgo sparse
 clang-built-linux:
 	$(cbl_dir)/build-llvm.py -b $(llvm_wrkdir)/llvm/ -I $(LLVM_DIR) -l $(llvm_srcdir) -n
+
+clang-built-linux-pgo:
+	$(cbl_dir)/build-llvm.py -b $(llvm_wrkdir)/llvm/ -I $(LLVM_DIR)-pgo -l $(llvm_srcdir) -n \
+		-L$(linux_srcdir) --pgo=kernel-allmodconfig-slim --lto=thin --targets "riscv"
 
 sparse:
 	$(MAKE) -C $(SPARSE_DIR)
