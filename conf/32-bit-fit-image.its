@@ -47,7 +47,7 @@
                 conf-riscvpc.dtb {
                         description = "1 Linux kernel, initramfs, FDT blob";
                         kernel = "vmlinux.bin";
-                ramdisk = "initramfs.cpio.gz";
+                        ramdisk = "initramfs.cpio.gz";
                         fdt = "riscvpc.dtb";
                         hash-1 {
                                 algo = "sha256";

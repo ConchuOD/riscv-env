@@ -30,7 +30,7 @@ include conf/$(DEVKIT)/board.mk
 export CCACHE_DIR := /stuff/ccache
 export CCACHE_TEMPDIR := /stuff/ccache/tmp
 
-GCC_VERSION ?= 12
+GCC_VERSION ?= 11
 LLVM_VERSION ?= 16
 TOOLCHAIN_DIR := /stuff/toolchains
 LLVM_DIR ?= $(TOOLCHAIN_DIR)/llvm-$(LLVM_VERSION)
@@ -76,9 +76,6 @@ buildroot_initramfs_sysroot := $(wrkdir)/$(DEVKIT)/buildroot_initramfs_sysroot
 
 buildroot_initramfs_tar := $(buildroot_initramfs_wrkdir)/images/rootfs.tar
 buildroot_initramfs_config ?= $(confdir)/buildroot_initramfs_config
-buildroot_rootfs_wrkdir := $(wrkdir)/buildroot_rootfs
-buildroot_rootfs_ext := $(buildroot_rootfs_wrkdir)/images/rootfs.ext4
-buildroot_rootfs_config := $(confdir)/buildroot_rootfs_config
 
 buildroot_patchdir := $(patchdir)/buildroot/
 buildroot_patches := $(shell ls $(buildroot_patchdir)/*.patch)
@@ -99,13 +96,10 @@ flash_image := $(wrkdir)/$(DEVKIT)-$(GITID).gpt
 vfat_image := $(wrkdir)/$(DEVKIT)-vfat.part
 initramfs_uc := $(wrkdir)/$(DEVKIT)-initramfs.cpio
 initramfs := $(wrkdir)/initramfs.cpio.gz
-rootfs := $(wrkdir)/rootfs.bin
 fit := $(wrkdir)/fitImage.fit
 uimage := $(wrkdir)/uImage
 
 device_tree_blob := $(wrkdir)/riscvpc.dtb
-
-# device_tree_blob := $(wrkdir)/$(DEVKIT).dtb
 
 fsbl_srcdir := $(srcdir)/fsbl
 fsbl_wrkdir := $(wrkdir)/fsbl
@@ -122,8 +116,14 @@ uboot_s_scr := $(buildroot_initramfs_wrkdir)/images/boot.scr
 opensbi_srcdir := $(srcdir)/opensbi
 opensbi_wrkdir := $(wrkdir)/opensbi
 opensbi := $(wrkdir)/$(DEVKIT)/fw_payload.bin
+opensbi_dyn := $(wrkdir)/$(DEVKIT)/fw_dynamic.bin
+opensbi_dyn_build := $(opensbi_wrkdir)/platform/generic/firmware/fw_dynamic.bin
+opensbi_build := $(opensbi_wrkdir)/platform/generic/firmware/fw_payload.bin
 second_srcdir := $(srcdir)/2ndboot
 secondboot := $(wrkdir)/.2ndboot
+
+tpl_its := $(confdir)/$(DEVKIT)/u-boot.its
+tpl_img := $(wrkdir)/$(DEVKIT)/$(DEVKIT)-tpl.img
 
 openocd_srcdir := $(srcdir)/riscv-openocd
 openocd_wrkdir := $(wrkdir)/riscv-openocd
@@ -377,6 +377,10 @@ clang-built-linux-pgo:
 sparse:
 	$(MAKE) -C $(SPARSE_DIR)
 
+clang-built-linux-pgo:
+	$(cbl_dir)/build-llvm.py -b $(llvm_wrkdir)/llvm/ -I $(LLVM_DIR)-pgo -l $(llvm_srcdir) -n \
+		-L$(linux_srcdir) --pgo=kernel-allmodconfig-slim --lto=thin --targets "RISCV;X86"
+
 $(buildroot_builddir_stamp): $(buildroot_srcdir) $(buildroot_patches)
 	- rm -rf $(buildroot_builddir)
 	mkdir -p $(buildroot_builddir) && cd $(buildroot_builddir) && cp $(buildroot_srcdir)/* . -r
@@ -386,15 +390,19 @@ $(buildroot_builddir_stamp): $(buildroot_srcdir) $(buildroot_patches)
 	touch $@
 	rm -rf $(buildroot_initramfs_wrkdir)
 	mkdir -p $(buildroot_initramfs_wrkdir)
-	rm -rf $(buildroot_rootfs_wrkdir)
-	mkdir -p $(buildroot_rootfs_wrkdir)
 
-$(buildroot_initramfs_wrkdir)/.config: $(buildroot_builddir_stamp) $(confdir)/initramfs.txt $(buildroot_initramfs_config) $(uboot_s_cfg) $(uboot_s_txt)
+$(buildroot_initramfs_wrkdir)/.config: $(buildroot_builddir_stamp) $(confdir)/initramfs.txt $(buildroot_initramfs_config) $(uboot_s_cfg) $(uboot_s_txt) $(opensbi_dyn)
 	cp $(buildroot_initramfs_config) $(buildroot_initramfs_wrkdir)/.config
-	$(MAKE) -C $(buildroot_builddir) RISCV=$(GCC_DIR) PATH=$(PATH) O=$(buildroot_initramfs_wrkdir) olddefconfig CROSS_COMPILE=$(CROSS_COMPILE) -j$(num_threads)
+	$(MAKE) -C $(buildroot_builddir) RISCV=$(GCC_DIR) PATH=$(PATH) \
+		O=$(buildroot_initramfs_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) \
+		-j$(num_threads) \
+		OPENSBI=$(opensbi_dyn) \
+		olddefconfig
 
 $(buildroot_initramfs_tar): $(buildroot_builddir_stamp) $(buildroot_initramfs_wrkdir)/.config CROSS_COMPILE_CC $(buildroot_initramfs_config)
-	$(MAKE) -C $(buildroot_builddir) RISCV=$(GCC_DIR) PATH=$(PATH) O=$(buildroot_initramfs_wrkdir) -j$(num_threads) DEVKIT=$(DEVKIT)
+	$(MAKE) -C $(buildroot_builddir) RISCV=$(GCC_DIR) PATH=$(PATH) \
+		O=$(buildroot_initramfs_wrkdir) -j$(num_threads) DEVKIT=$(DEVKIT) \
+		OPENSBI=$(opensbi_dyn)
 
 $(buildroot_initramfs_sysroot_stamp): $(buildroot_initramfs_tar)
 	mkdir -p $(buildroot_initramfs_sysroot)
@@ -406,19 +414,6 @@ buildroot_initramfs_menuconfig: $(buildroot_initramfs_wrkdir)/.config $(buildroo
 	$(MAKE) -C $(buildroot_builddir) O=$(buildroot_initramfs_wrkdir) menuconfig
 	$(MAKE) -C $(buildroot_builddir) O=$(buildroot_initramfs_wrkdir) savedefconfig
 	cp $(buildroot_initramfs_wrkdir)/defconfig $(buildroot_initramfs_config)
-
-$(buildroot_rootfs_wrkdir)/.config: $(buildroot_builddir_stamp)
-	cp $(buildroot_rootfs_config) $@
-	$(MAKE) -C $(buildroot_builddir) RISCV=$(GCC_DIR) PATH=$(PATH) O=$(buildroot_rootfs_wrkdir) olddefconfig
-
-$(buildroot_rootfs_ext): $(buildroot_builddir_stamp) $(buildroot_rootfs_wrkdir)/.config CROSS_COMPILE_CC $(buildroot_rootfs_config)
-	$(MAKE) -C $(buildroot_builddir) RISCV=$(GCC_DIR) PATH=$(PATH) O=$(buildroot_rootfs_wrkdir) -j$(num_threads)
-
-.PHONY: buildroot_rootfs_menuconfig
-buildroot_rootfs_menuconfig: $(buildroot_rootfs_wrkdir)/.config $(buildroot_builddir_stamp)
-	$(MAKE) -C $(buildroot_builddir) O=$(buildroot_rootfs_wrkdir) menuconfig
-	$(MAKE) -C $(buildroot_builddir) O=$(buildroot_rootfs_wrkdir) savedefconfig
-	cp $(buildroot_rootfs_wrkdir)/defconfig conf/buildroot_rootfs_config
 
 .PHONY: linux_cfg
 cfg: $(linux_wrkdir)/.config
@@ -493,7 +488,10 @@ $(fit): $(uboot_s) $(uimage) $(vmlinux_bin) $(initramfs) $(device_tree_blob) $(i
 	PATH=$(PATH) mkimage -f $(its_file) -A riscv -O linux -T flat_dt $@
 
 $(uimage): $(initramfs)
-	mkimage -A riscv -O linux -T ramdisk -C gzip -d $< $@ 
+	mkimage -A riscv -O linux -T ramdisk -C gzip -d $< $@
+
+$(tpl_img): $()
+	mkimage -f $(tpl_its) -A riscv -O u-boot -T $@
 
 $(libversion): $(fsbl_wrkdir_stamp)
 	- rm -rf $(libversion)
@@ -517,20 +515,28 @@ $(fsbl): $(libversion) $(fsbl_wrkdir_stamp) $(device_tree_blob)
 	
 $(uboot_s): $(buildroot_initramfs_sysroot_stamp)
 
-$(opensbi): $(uboot_s) CROSS_COMPILE_CC 
-	rm -rf $(opensbi_wrkdir)
+$(opensbi_dyn_build): CROSS_COMPILE_CC
+	mkdir -p $(opensbi_wrkdir)
+	$(MAKE) -C $(opensbi_srcdir) O=$(opensbi_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) \
+		PLATFORM=generic -j $(num_threads)
+
+$(opensbi_dyn): $(opensbi_dyn_build)
+	cp $(opensbi_dyn_build) $@
+
+opensbi_build := $(opensbi_wrkdir)/platform/generic/firmware/fw_payload.bin
+$(opensbi_build): $(uboot_s) CROSS_COMPILE_CC
 	mkdir -p $(opensbi_wrkdir)
 	mkdir -p $(dir $@)
 	$(MAKE) -C $(opensbi_srcdir) O=$(opensbi_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) \
-		PLATFORM=generic FW_PAYLOAD_PATH=$(uboot_s)
-	cp $(opensbi_wrkdir)/platform/generic/firmware/fw_payload.bin $@
+		PLATFORM=generic FW_PAYLOAD_PATH=$(uboot_s) \
+		 -j $(num_threads)
+
+$(opensbi): $(opensbi_build)
+	cp $(opensbi_build) $@
 
 $(secondboot): $(opensbi)
 	cd $(wrkdir) && $(second_srcdir)/build/fsz.sh $(opensbi)
 	touch $(secondboot)
-
-$(rootfs): $(buildroot_rootfs_ext)
-	cp $< $@
 
 $(buildroot_initramfs_sysroot): $(buildroot_initramfs_sysroot_stamp)
 
@@ -557,7 +563,6 @@ flash_image: $(flash_image)
 opensbi: $(opensbi)
 fsbl: $(fsbl)
 bootloaders: $(bootloaders-y)
-root-fs: $(rootfs)
 dtbs: ${device_tree_blob}
 
 .PHONY: clean distclean clean-linux clean-workdir
@@ -705,45 +710,6 @@ endif
 	dd if=$(fsbl) of=$(PART1) bs=4096
 	dd if=$(vfat_image) of=$(PART2) bs=4096
 	dd if=$(opensbi) of=$(PART3) bs=4096
-
-# DEB_IMAGE	:= rootfs.tar.gz
-# DEB_URL := 
-
-# $(DEB_IMAGE):
-# 	wget $(DEB_URL)$(DEB_IMAGE)
-
-# format-deb-image: $(DEB_IMAGE) format-boot-loader
-# 	/sbin/mke2fs -L ROOTFS -t ext4 $(PART4)
-# 	-mkdir tmp-mnt
-# 	-sudo mount $(PART2) tmp-mnt && cd tmp-mnt && \
-# 		sudo tar -zxf ../$(DEB_IMAGE) -C .
-# 	sudo umount tmp-mnt
-
-format-rootfs-image: $(rootfs)
-ifeq ($(DISK)p1,$(wildcard $(DISK)p1))
-	@$(eval PART1 := $(DISK)p1)
-	@$(eval PART2 := $(DISK)p2)
-	@$(eval PART3 := $(DISK)p3)
-	@$(eval PART4 := $(DISK)p4)
-else ifeq ($(DISK)s1,$(wildcard $(DISK)s1))
-	@$(eval PART1 := $(DISK)s1)
-	@$(eval PART2 := $(DISK)s2)
-	@$(eval PART3 := $(DISK)s3)
-	@$(eval PART4 := $(DISK)s4)
-else ifeq ($(DISK)1,$(wildcard $(DISK)1))
-	@$(eval PART1 := $(DISK)1)
-	@$(eval PART2 := $(DISK)2)
-	@$(eval PART3 := $(DISK)3)
-	@$(eval PART4 := $(DISK)4)
-else
-	@echo Error: Could not find bootloader partition for $(DISK)
-	@exit 1
-endif
-ifeq ($(DEVKIT),mpfs)
-	dd if=$(rootfs) of=$(PART4) bs=4096
-else 
-	dd if=$(rootfs) of=$(PART3) bs=4096
-endif
 
 .PHONY: genimage-icicle-image
 genimage-icicle-image: $(fit) $(uboot_s_scr)

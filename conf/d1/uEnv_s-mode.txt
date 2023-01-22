@@ -3,7 +3,7 @@
 
 setenv autoload no;
 dhcp;
-setenv serverip 192.168.2.5;
+setenv serverip 192.168.2.9;
 
 # cp work/initramfs.cpio.gz /srv/tftp/d1.cpio.gz && pushd /srv/tftp && mkimage -A riscv -O linux -T ramdisk -C gzip -d d1.cpio.gz d1.uImage && popd
 # tftp 0x44000000 d1-vmlinux.bin
