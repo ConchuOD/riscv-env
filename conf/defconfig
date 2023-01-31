@@ -29,9 +29,8 @@ CONFIG_SOC_VIRT=y
 CONFIG_SMP=y
 CONFIG_HOTPLUG_CPU=y
 # CONFIG_CMDLINE="earlycon keep_bootcon debug memblock=debug reboot=cold"
-CONFIG_CMDLINE="earlycon keep_bootcon debug"
 # CONFIG_CMDLINE="earlycon keep_bootcon debug root=/dev/mmcblk1p2 rootdelay=10"
-# CONFIG_CMDLINE="root=/dev/nfs rw ip=dhcp nfsroot=192.168.2.5:/stuff/nfs_share,tcp,v3 rdinit=/usr/sbin/init rootwait=10 earlycon"
+CONFIG_CMDLINE="root=/dev/nfs rw ip=dhcp nfsroot=192.168.2.5:/stuff/nfs_share,tcp,v3 rdinit=/usr/sbin/init rootwait=10 earlycon"
 CONFIG_PM=y
 CONFIG_CPU_IDLE=y
 CONFIG_CPU_FREQ=y
@@ -195,6 +194,7 @@ CONFIG_SIFIVE_L2=y
 CONFIG_RISCV_ISA_ZICBOM=y
 CONFIG_RISCV_ISA_ZICBOZ=y
 CONFIG_RISCV_ISA_SVNAPOT=y
+CONFIG_RISCV_ISA_V=y
 CONFIG_ZRAM=y
 CONFIG_CRYPTO_DEFLATE=y
 CONFIG_CRYPTO_ZSTD=y
