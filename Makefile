@@ -368,18 +368,14 @@ endif
 
 .PHONY: clang-built-linux clang-built-linux-pgo sparse
 clang-built-linux:
-	$(cbl_dir)/build-llvm.py -b $(llvm_wrkdir)/llvm/ -I $(LLVM_DIR) -l $(llvm_srcdir) -n
+	$(cbl_dir)/build-llvm.py -b $(llvm_wrkdir)/llvm/ -i $(LLVM_DIR) -l $(llvm_srcdir) -n
 
 clang-built-linux-pgo:
-	$(cbl_dir)/build-llvm.py -b $(llvm_wrkdir)/llvm/ -I $(LLVM_DIR)-pgo -l $(llvm_srcdir) -n \
-		-L$(linux_srcdir) --pgo=kernel-allmodconfig --targets "X86;RISCV"
+	$(cbl_dir)/build-llvm.py -b $(llvm_wrkdir)/llvm/ -i $(LLVM_DIR)-pgo -l $(llvm_srcdir) -n \
+		-L$(linux_srcdir) --pgo=kernel-allmodconfig-slim --lto=thin --targets "RISCV;X86"
 
 sparse:
 	$(MAKE) -C $(SPARSE_DIR)
-
-clang-built-linux-pgo:
-	$(cbl_dir)/build-llvm.py -b $(llvm_wrkdir)/llvm/ -I $(LLVM_DIR)-pgo -l $(llvm_srcdir) -n \
-		-L$(linux_srcdir) --pgo=kernel-allmodconfig-slim --lto=thin --targets "RISCV;X86"
 
 $(buildroot_builddir_stamp): $(buildroot_srcdir) $(buildroot_patches)
 	- rm -rf $(buildroot_builddir)
