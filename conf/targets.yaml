@@ -84,6 +84,13 @@ targets:
     cc: "ccache $(CROSS_COMPILE_CC)"
     llvm: 1
 
+  gcc_ias:
+    cc: "ccache $(CROSS_COMPILE_CC)"
+    gcc_version: 13
+    llvm_version: 14
+    llvm: 0
+    llvm_ias: 1
+
   vision5:
     cc: "ccache clang"
     llvm: 1
