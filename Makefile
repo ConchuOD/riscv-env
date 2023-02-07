@@ -31,7 +31,7 @@ export CCACHE_DIR := /stuff/ccache
 export CCACHE_TEMPDIR := /stuff/ccache/tmp
 
 GCC_VERSION ?= 11
-LLVM_VERSION ?= 16
+LLVM_VERSION ?= 15
 TOOLCHAIN_DIR := /stuff/toolchains
 LLVM_DIR ?= $(TOOLCHAIN_DIR)/llvm-$(LLVM_VERSION)
 GCC_DIR ?= $(TOOLCHAIN_DIR)/gcc-$(GCC_VERSION)
@@ -372,7 +372,7 @@ clang-built-linux:
 
 clang-built-linux-pgo:
 	$(cbl_dir)/build-llvm.py -b $(llvm_wrkdir)/llvm/ -I $(LLVM_DIR)-pgo -l $(llvm_srcdir) -n \
-		-L$(linux_srcdir) --pgo=kernel-allmodconfig-slim --lto=thin --targets "riscv"
+		-L$(linux_srcdir) --pgo=kernel-allmodconfig --targets "X86;RISCV"
 
 sparse:
 	$(MAKE) -C $(SPARSE_DIR)

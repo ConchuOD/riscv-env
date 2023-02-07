@@ -19,7 +19,7 @@ targets:
     gcc_version: 12
     llvm: 0
 
-  gcc-12:
+  gcc-13:
     cc: "ccache $(CROSS_COMPILE_CC)"
     gcc_version: 13
     llvm: 0
@@ -32,6 +32,11 @@ targets:
   llvm-15:
     cc: "ccache clang"
     llvm_version: 15
+    llvm: 1
+
+  llvm-15-pgo:
+    cc: "ccache clang"
+    llvm_version: 15-pgo
     llvm: 1
 
   llvm-16:
@@ -108,5 +113,6 @@ targets:
   allmodconfig_clang:
     cc: "ccache clang"
     llvm: 1
+    llvm_version: 15
     type: "allmodconfig"
 
