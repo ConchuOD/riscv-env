@@ -125,6 +125,13 @@ secondboot := $(wrkdir)/.2ndboot
 tpl_its := $(confdir)/$(DEVKIT)/u-boot.its
 tpl_img := $(wrkdir)/$(DEVKIT)/$(DEVKIT)-tpl.img
 
+uboot_spl := $(buildroot_initramfs_wrkdir)/images/u-boot-spl.bin
+
+v5v2_spl_tool_srcdir := $(srcdir)/v5-tools/spl_tool
+v5v2_spl_tool := $(v5v2_spl_tool_srcdir)/spl_tool
+v5v2_spl_interim := $(buildroot_initramfs_wrkdir)/images/u-boot-spl.bin.normal.out
+v5v2_spl := $(wrkdir)/$(DEVKIT)/u-boot-spl.bin.normal.out
+
 openocd_srcdir := $(srcdir)/riscv-openocd
 openocd_wrkdir := $(wrkdir)/riscv-openocd
 openocd := $(openocd_wrkdir)/src/openocd
@@ -153,6 +160,7 @@ bootloaders-$(OSBI_SUPPORT) += $(opensbi)
 bootloaders-$(SECOND_SUPPORT) += $(secondboot)
 bootloaders-$(HSS_SUPPORT) += $(hss_uboot_payload_bin)
 bootloaders-$(AMP_SUPPORT) += $(amp_example)
+bootloaders-$(V5V2_SUPPORT) += $(v5v2_spl)
 
 deploy_dir := $(CURDIR)/deploy
 
@@ -254,7 +262,7 @@ qemu-clang:
 
 qemu-icicle:
 	$(QEMU)/qemu-system-riscv64 -M microchip-icicle-kit \
-		-m 2G -smp 5 \
+		-m 4G -smp 5 \
 		-kernel $(vmlinux_bin) \
 		-dtb $(wrkdir)/riscvpc.dtb \
 		-initrd $(initramfs) \
@@ -264,7 +272,7 @@ qemu-icicle:
 
 qemu-icicle-hss:
 	$(QEMU)/qemu-system-riscv64 -s -S -M microchip-icicle-kit \
-		-m 2G -smp 5 \
+		-m 4G -smp 5 \
 		-chardev socket,id=serial1,path=serial1.sock,server=on,wait=on \
 		-display none -serial stdio \
 		-bios $(wrkdir)/hss-qemu.bin \
@@ -533,6 +541,13 @@ $(opensbi): $(opensbi_build)
 $(secondboot): $(opensbi)
 	cd $(wrkdir) && $(second_srcdir)/build/fsz.sh $(opensbi)
 	touch $(secondboot)
+
+$(v5v2_spl_tool): $(v5v2_spl_tool_srcdir)
+	cd $(v5v2_spl_tool_srcdir) && make
+
+$(v5v2_spl): $(uboot_spl) $(v5v2_spl_tool)
+	$(v5v2_spl_tool) -c -f $<
+	cp $(v5v2_spl_interim) $@
 
 $(buildroot_initramfs_sysroot): $(buildroot_initramfs_sysroot_stamp)
 

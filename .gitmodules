@@ -46,3 +46,6 @@
 [submodule "u-boot"]
 	path = u-boot
 	url = https://github.com/u-boot/u-boot
+[submodule "v5-tools"]
+	path = v5-tools
+	url = https://github.com/starfive-tech/Tools.git
