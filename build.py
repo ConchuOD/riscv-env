@@ -18,6 +18,7 @@ class Build:
         self.gcc_version = try_default(config, "gcc_version", 12)
         self.type = try_default(config, "type", "tftp-boot")
         self.devkit = try_default(config, "devkit", "lowmem")
+        self.binutils_path = try_default(config, "binutils_path", "")
         self.dryrun = False
 
     def simple_build(self):
