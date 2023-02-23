@@ -42,7 +42,7 @@ BINUTILS_DIR ?= $(TOOLCHAIN_DIR)/binutils-$(BINUTILS_VERSION)
 PATH := $(SPARSE_DIR):/$(LLVM_DIR)/bin:$(GCC_DIR)/bin:$(PATH)
 GITID := $(shell git describe --dirty --always)
 
-cbl_dir := $(srcdir)/clang-built-linux
+cbl_dir := $(srcdir)/tc-build
 llvm_srcdir := $(srcdir)/llvm
 llvm_wrkdir := $(wrkdir)/llvm
 toolchain_srcdir := $(srcdir)/riscv-gnu-toolchain

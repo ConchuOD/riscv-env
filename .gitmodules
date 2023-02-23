@@ -32,7 +32,7 @@
 	path = llvm
 	url = git@github.com:llvm/llvm-project.git
 [submodule "clang-built-linux"]
-	path = clang-built-linux
+	path = tc-build
 	url = https://github.com/ClangBuiltLinux/tc-build
 [submodule "lab"]
 	path = lab
