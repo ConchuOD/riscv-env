@@ -1,0 +1,4 @@
+fileaddr: 8a00_0000
+dtb: 8c000_0000
+initramfs: 8d00_0000
+initrd_high: 91ef_ffff
