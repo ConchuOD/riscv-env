@@ -2,7 +2,7 @@ ISA ?= rv64imafdc
 
 ABI ?= lp64d
 
-QEMU ?= /stuff/qemu/build
+QEMU ?= ~/stuff/qemu/build
 LIBERO_PATH ?= /usr/local/microsemi/Libero_v2021.1/
 SC_PATH ?= /usr/local/microsemi/SoftConsole-v2021.1/
 fpgenprog := $(LIBERO_PATH)/bin64/fpgenprog
@@ -32,10 +32,12 @@ export CCACHE_TEMPDIR := /stuff/ccache/tmp
 
 GCC_VERSION ?= 11
 LLVM_VERSION ?= 15
+BINUTILS_VERSION ?= 2.35
 TOOLCHAIN_DIR := /stuff/toolchains
 LLVM_DIR ?= $(TOOLCHAIN_DIR)/llvm-$(LLVM_VERSION)
 GCC_DIR ?= $(TOOLCHAIN_DIR)/gcc-$(GCC_VERSION)
 SPARSE_DIR ?= $(CURDIR)/sparse
+BINUTILS_DIR ?= $(TOOLCHAIN_DIR)/binutils-$(BINUTILS_VERSION)
 
 PATH := $(SPARSE_DIR):/$(LLVM_DIR)/bin:$(GCC_DIR)/bin:$(PATH)
 GITID := $(shell git describe --dirty --always)
@@ -45,6 +47,8 @@ llvm_srcdir := $(srcdir)/llvm
 llvm_wrkdir := $(wrkdir)/llvm
 toolchain_srcdir := $(srcdir)/riscv-gnu-toolchain
 toolchain_wrkdir := $(wrkdir)/riscv-gnu-toolchain
+binutils_srcdir := $(srcdir)/binutils
+binutils_wrkdir := $(wrkdir)/binutils
 toolchain_dest := $(GCC_DIR)
 target := riscv64-unknown-linux-gnu
 CROSS_COMPILE := $(target)-
@@ -262,7 +266,7 @@ qemu-clang:
 
 qemu-icicle:
 	$(QEMU)/qemu-system-riscv64 -M microchip-icicle-kit \
-		-m 4G -smp 5 \
+		-m 3G -smp 5 \
 		-kernel $(vmlinux_bin) \
 		-dtb $(wrkdir)/riscvpc.dtb \
 		-initrd $(initramfs) \
@@ -374,13 +378,16 @@ CROSS_COMPILE_CC: $(toolchain_srcdir)
 # sed 's/^#define LINUX_VERSION_CODE.*/#define LINUX_VERSION_CODE 332032/' -i $(toolchain_dest)/sysroot/usr/include/linux/version.h
 endif
 
-.PHONY: clang-built-linux clang-built-linux-pgo sparse
-clang-built-linux:
+.PHONY: build-binutils build-llvm build-llvm-pgo sparse
+build-llvm:
 	$(cbl_dir)/build-llvm.py -b $(llvm_wrkdir)/llvm/ -i $(LLVM_DIR) -l $(llvm_srcdir) -n
 
-clang-built-linux-pgo:
+build-llvm-pgo:
 	$(cbl_dir)/build-llvm.py -b $(llvm_wrkdir)/llvm/ -i $(LLVM_DIR)-pgo -l $(llvm_srcdir) -n \
-		-L$(linux_srcdir) --pgo=kernel-allmodconfig-slim --lto=thin --targets "RISCV;X86"
+		-L$(linux_srcdir) --pgo=kernel-allmodconfig --targets "X86;RISCV"
+
+build-binutils:
+	$(cbl_dir)/build-binutils.py -b $(binutils_srcdir) -B $(binutils_wrkdir) -i $(BINUTILS_DIR) -t riscv64
 
 sparse:
 	$(MAKE) -C $(SPARSE_DIR)
@@ -563,6 +570,10 @@ $(hss_payload_generator): $(payload_generator_tarball)
 
 $(hss_uboot_payload_bin): $(uboot_s) $(hss_payload_generator) $(bootloaders-y)
 	cd $(buildroot_initramfs_wrkdir)/images && $(hss_payload_generator) -c $(payload_config) -v $(hss_uboot_payload_bin)
+
+.PHONY: payload_ext
+payload_ext: $(uboot_s) $(hss_payload_generator) $(bootloaders-y)
+	cd $(wrkdir) && $(hss_payload_generator) -c $(payload_config) -v $(hss_uboot_payload_bin)
 
 .PHONY: buildroot_initramfs_sysroot vmlinux bbl fit flash_image initrd opensbi u-boot bootloaders dtbs
 buildroot_initramfs_sysroot: $(buildroot_initramfs_sysroot)
