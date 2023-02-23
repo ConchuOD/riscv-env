@@ -46,8 +46,8 @@ targets:
 
   old_binutils:
     cc: "ccache $(CROSS_COMPILE_CC)"
-    gcc_version: 12
-    ld_path: "/stuff/toolchains/binutils-2.35/bin/riscv64-unknown-linux-gnu-ld"
+    gcc_version: 13
+    ld_path: "/stuff/toolchains/binutils-2.35/bin/riscv64-linux-gnu-ld"
     llvm: 0
 
   host_binutils:
