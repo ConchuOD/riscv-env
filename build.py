@@ -88,6 +88,7 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--target', help = 'the target config', default = 'default')
     parser.add_argument('--dry-run', help = "dry run", default = False, action = 'store_true')
     parser.add_argument('--pattern', help = "pattern to match in stderr")
+    parser.add_argument('--linux-dir', help = "directory to build linux from", default = "/stuff/linux")
 
     args = parser.parse_args()
 

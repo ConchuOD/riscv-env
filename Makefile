@@ -15,7 +15,9 @@ srcdir := $(srcdir:/=)
 patchdir := $(CURDIR)/patches
 confdir := $(srcdir)/conf
 wrkdir := $(CURDIR)/work
-linux_srcdir := /stuff/linux
+
+LINUX_DIR ?= /stuff/linux
+linux_srcdir := $(LINUX_DIR)
 linux_wrkdir := $(wrkdir)/linux
 riscv_dtbdir := $(linux_wrkdir)/arch/riscv/boot/dts/
 
