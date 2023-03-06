@@ -2,7 +2,7 @@ ISA ?= rv64imafdc
 
 ABI ?= lp64d
 
-QEMU ?= ~/stuff/qemu/build
+QEMU ?= /stuff/qemu/build
 LIBERO_PATH ?= /usr/local/microsemi/Libero_v2021.1/
 SC_PATH ?= /usr/local/microsemi/SoftConsole-v2021.1/
 fpgenprog := $(LIBERO_PATH)/bin64/fpgenprog
@@ -165,6 +165,7 @@ bootloaders-$(SECOND_SUPPORT) += $(secondboot)
 bootloaders-$(HSS_SUPPORT) += $(hss_uboot_payload_bin)
 bootloaders-$(AMP_SUPPORT) += $(amp_example)
 bootloaders-$(V5V2_SUPPORT) += $(v5v2_spl)
+bootloaders-$(V5V2_SUPPORT) += $(tpl_img)
 
 deploy_dir := $(CURDIR)/deploy
 
@@ -204,14 +205,14 @@ reboot: $(lab)
 random-config:
 	$(MAKE) clean-linux
 	mkdir -p $(linux_wrkdir)
-	cp $(CURDIR)/oldconfig $(linux_wrkdir)/.config
+	cp $(CURDIR)/randconfig $(linux_wrkdir)/.config
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
 		ARCH=riscv \
 		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LLD) $(LINUX_AS) $(LINUX_LD) $(LINUX_CC) \
 		PATH=$(PATH) \
 		W=1 C=1 \
 		KBUILD_BUILD_TIMESTAMP=$(random_date) \
-		-j$(num_threads)
+		-j$(num_threads) | tee logs/random.log
 
 .PHONY: allmodconfig
 allmodconfig:
@@ -501,9 +502,6 @@ $(fit): $(uboot_s) $(uimage) $(vmlinux_bin) $(initramfs) $(device_tree_blob) $(i
 $(uimage): $(initramfs)
 	mkimage -A riscv -O linux -T ramdisk -C gzip -d $< $@
 
-$(tpl_img): $()
-	mkimage -f $(tpl_its) -A riscv -O u-boot -T $@
-
 $(libversion): $(fsbl_wrkdir_stamp)
 	- rm -rf $(libversion)
 	echo "const char *gitid = \"$(shell git describe --always --dirty)\";" > $(libversion)
@@ -548,6 +546,10 @@ $(opensbi): $(opensbi_build)
 $(secondboot): $(opensbi)
 	cd $(wrkdir) && $(second_srcdir)/build/fsz.sh $(opensbi)
 	touch $(secondboot)
+
+$(tpl_img): $(u-boot) $(opensbi)
+	mkimage -f $(tpl_its) -A riscv -O u-boot -T firmware $@
+	cp $@ /srv/tftp/
 
 $(v5v2_spl_tool): $(v5v2_spl_tool_srcdir)
 	cd $(v5v2_spl_tool_srcdir) && make

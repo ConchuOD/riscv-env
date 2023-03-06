@@ -7,7 +7,7 @@
 	images {
 		firmware {
 			description = "u-boot";
-			data = /incbin/("fw_payload.bin");
+			data = /incbin/("../../work/vision5v2/fw_payload.bin");
 			type = "firmware";
 			arch = "riscv";
 			os = "u-boot";

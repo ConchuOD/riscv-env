@@ -5,10 +5,10 @@ setenv autoload no;
 dhcp;
 setenv serverip 192.168.2.9
 tftpboot 0x88000000 vision5v2-fitImage.fit
-bootm start 0x88000000;
-bootm loados 0x88000000;
-bootm ramdisk;
-bootm prep;
-bootm go;
+bootm 0x88000000;
 
 setenv autoload no; dhcp; setenv serverip 192.168.2.9; tftpboot 0x88000000 vision5v2-fitImage.fit; bootm start 0x88000000; bootm loados 0x88000000; bootm ramdisk; bootm prep; bootm go;
+
+setenv autoload no; dhcp; setenv serverip 192.168.2.9; sf probe;
+tftpboot 0x88000000 vision5v2-tpl.img;
+sf update 0x88000000 0x100000 $filesize

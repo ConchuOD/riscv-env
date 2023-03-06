@@ -336,3 +336,7 @@ CONFIG_MEMTEST=y
 
 CONFIG_CMDLINE="earlycon keep_bootcon debug root=/dev/mmcblk1p2"
 # CONFIG_CMDLINE="root=/dev/nfs rw ip=dhcp nfsroot=192.168.2.5:/stuff/nfs_share,tcp,v3 rdinit=/usr/sbin/init rootwait=10 earlycon"
+
+CONFIG_RUNTIME_TESTING_MENU=y
+CONFIG_STRING_SELFTEST=y
+CONFIG_TEST_STRING_HELPERS=y

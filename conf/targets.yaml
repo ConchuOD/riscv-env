@@ -49,6 +49,13 @@ targets:
     llvm_version: 17
     llvm: 1
 
+  gcc-lld-13:
+    cc: "ccache $(CROSS_COMPILE_CC)"
+    gcc_version: 13
+    llvm_version: 13
+    ld_path: "/stuff/toolchains/llvm-13/bin/ld.lld"
+    llvm: 0
+
   llvm-ld-235:
     cc: "ccache clang"
     llvm_version: 17
@@ -58,13 +65,20 @@ targets:
 
   gcc-ld-235:
     cc: "ccache $(CROSS_COMPILE_CC)"
-    gcc_version: 12
+    gcc_version: 13
     ld_path: "/stuff/toolchains/binutils-2.35/bin/riscv64-linux-gnu-ld"
+    llvm: 0
+
+  gcc-ld-237:
+    cc: "ccache $(CROSS_COMPILE_CC)"
+    gcc_version: 13
+    ld_path: "/stuff/toolchains/binutils-2.37/bin/riscv64-linux-gnu-ld"
     llvm: 0
 
   llvm-ld-237:
     cc: "ccache clang"
     llvm_version: 17
+    gcc_version: 11
     ld_path: "/stuff/toolchains/gcc-11/bin/riscv64-unknown-linux-gnu-ld"
     llvm: 1
 
@@ -86,9 +100,10 @@ targets:
     llvm_ias: 0
     llvm: 1
 
-  llvm-gas-239:
+  llvm-16-gas-239:
     cc: "ccache clang"
     gcc_version: 12
+    llvm_version: 16
     llvm_ias: 0
     llvm: 1
 

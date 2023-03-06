@@ -1,9 +1,10 @@
 OSBI_SUPPORT ?= y
 SPL_SUPPORT ?= y
 V5V2_SUPPORT ?= y
-UBOOT_VERSION = 30238f666d2736063f615613b7297efde20c3d49
+UBOOT_VERSION = f6cd05485792e27b494815e87636c83f50d46dbf
 linux_defconfig := $(confdir)/$(DEVKIT)/defconfig
 linux_dtb := $(riscv_dtbdir)/starfive/jh7110-starfive-visionfive-2-va.dtb
+# linux_dtb := $(riscv_dtbdir)/starfive/jh7110-starfive-visionfive-2-v1.2a.dtb
 buildroot_initramfs_config := $(confdir)/$(DEVKIT)/buildroot_initramfs_config
 its_file := $(confdir)/32-bit-fit-image.its
 tftp_boot_scr := vision5v2-boot.scr
