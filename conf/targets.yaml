@@ -5,6 +5,38 @@ targets:
     gcc_version: 11
     llvm: 1
 
+  vision5:
+    cc: "ccache clang"
+    llvm: 1
+    devkit: "vision5"
+
+  vision5v2:
+    cc: "ccache $(CROSS_COMPILE_CC)"
+    gcc_version: 13
+    devkit: "vision5v2"
+
+  d1:
+    cc: "ccache clang"
+    llvm: 1
+    devkit: "d1"
+
+  vauban:
+    cc: "ccache clang"
+    llvm: 1
+    devkit: "vauban"
+    gcc_version: 11
+
+  allmodconfig:
+    cc: "ccache $(CROSS_COMPILE_CC)"
+    llvm: 0
+    type: "allmodconfig"
+
+  allmodconfig_clang:
+    cc: "ccache clang"
+    llvm: 1
+    llvm_version: 15-pgo
+    type: "allmodconfig"
+
   gcc:
     cc: "ccache $(CROSS_COMPILE_CC)"
     llvm: 0
@@ -60,19 +92,19 @@ targets:
     cc: "ccache clang"
     llvm_version: 17
     binutils_path: "/stuff/toolchains/binutils-2.35/bin/"
-    ld_path: "/stuff/toolchains/binutils-2.35/bin/riscv64-linux-gnu-ld"
+    ld_path: "/stuff/toolchains/binutils-2.35/bin/riscv64-unknown-linux-gnu-ld"
     llvm: 1
 
   gcc-ld-235:
     cc: "ccache $(CROSS_COMPILE_CC)"
     gcc_version: 13
-    ld_path: "/stuff/toolchains/binutils-2.35/bin/riscv64-linux-gnu-ld"
+    ld_path: "/stuff/toolchains/binutils-2.35/bin/riscv64-unknown-linux-gnu-ld"
     llvm: 0
 
   gcc-ld-237:
     cc: "ccache $(CROSS_COMPILE_CC)"
     gcc_version: 13
-    ld_path: "/stuff/toolchains/binutils-2.37/bin/riscv64-linux-gnu-ld"
+    ld_path: "/stuff/toolchains/binutils-2.37/bin/riscv64-unknown-linux-gnu-ld"
     llvm: 0
 
   llvm-ld-237:
@@ -105,7 +137,7 @@ targets:
     gcc_version: 12
     llvm_version: 16
     llvm_ias: 0
-    ld_path: "/stuff/toolchains/binutils-2.38/bin/riscv64-linux-gnu-ld"
+    ld_path: "/stuff/toolchains/binutils-2.38/bin/riscv64-unknown-linux-gnu-ld"
     llvm: 1
 
   llvm-16-gas-239:
@@ -120,7 +152,7 @@ targets:
     gcc_version: 11
     llvm_version: 17
     llvm_ias: 0
-    ld_path: "/stuff/toolchains/binutils-2.35/bin/riscv64-linux-gnu-ld"
+    ld_path: "/stuff/toolchains/binutils-2.35/bin/riscv64-unknown-linux-gnu-ld"
     llvm: 1
 
   llvm-gas-239-ld-235:
@@ -128,7 +160,7 @@ targets:
     gcc_version: 12
     llvm_version: 17
     llvm_ias: 0
-    ld_path: "/stuff/toolchains/binutils-2.35/bin/riscv64-linux-gnu-ld"
+    ld_path: "/stuff/toolchains/binutils-2.35/bin/riscv64-unknown-linux-gnu-ld"
     llvm: 1
 
   llvm-binutils:
@@ -147,36 +179,4 @@ targets:
     llvm_version: 14
     llvm: 0
     llvm_ias: 1
-
-  vision5:
-    cc: "ccache clang"
-    llvm: 1
-    devkit: "vision5"
-
-  vision5v2:
-    cc: "ccache $(CROSS_COMPILE_CC)"
-    gcc_version: 13
-    devkit: "vision5v2"
-
-  d1:
-    cc: "ccache clang"
-    llvm: 1
-    devkit: "d1"
-
-  vauban:
-    cc: "ccache clang"
-    llvm: 1
-    devkit: "vauban"
-    gcc_version: 11
-
-  allmodconfig:
-    cc: "ccache $(CROSS_COMPILE_CC)"
-    llvm: 0
-    type: "allmodconfig"
-
-  allmodconfig_clang:
-    cc: "ccache clang"
-    llvm: 1
-    llvm_version: 15
-    type: "allmodconfig"
 
