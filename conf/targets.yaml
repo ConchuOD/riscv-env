@@ -100,6 +100,14 @@ targets:
     llvm_ias: 0
     llvm: 1
 
+  llvm-16-gas-238:
+    cc: "ccache clang"
+    gcc_version: 12
+    llvm_version: 16
+    llvm_ias: 0
+    ld_path: "/stuff/toolchains/binutils-2.38/bin/riscv64-linux-gnu-ld"
+    llvm: 1
+
   llvm-16-gas-239:
     cc: "ccache clang"
     gcc_version: 12

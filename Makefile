@@ -40,6 +40,7 @@ LLVM_DIR ?= $(TOOLCHAIN_DIR)/llvm-$(LLVM_VERSION)
 GCC_DIR ?= $(TOOLCHAIN_DIR)/gcc-$(GCC_VERSION)
 SPARSE_DIR ?= $(CURDIR)/sparse
 BINUTILS_DIR ?= $(TOOLCHAIN_DIR)/binutils-$(BINUTILS_VERSION)
+RUSTDIR ?= ~/.rustup/toolchains/1.62-x86_64-unknown-linux-gnu
 
 PATH := $(SPARSE_DIR):/$(LLVM_DIR)/bin:$(GCC_DIR)/bin:$(PATH)
 GITID := $(shell git describe --dirty --always)
@@ -56,6 +57,7 @@ target := riscv64-unknown-linux-gnu
 CROSS_COMPILE := $(target)-
 target_gdb := $(CROSS_COMPILE)gdb
 CROSS_COMPILE_CC := $(GCC_DIR)/bin/$(CROSS_COMPILE)gcc
+rust_sysroot := $(RUSTDIR)/lib/rustlib/src/rust/library
 
 # # LINUX_CC ?= "CC=riscv64-unknown-linux-gnu-gcc"
 # # LINUX_LD ?= "LD=/stuff/toolchains/binutils-2.35/bin/riscv64-unknown-linux-gnu-ld"
@@ -191,6 +193,7 @@ tftp-boot:
 	cp $(vmlinux_bin) /srv/tftp/$(DEVKIT)-vmlinux.bin
 	cp $(uimage) /srv/tftp/$(DEVKIT).uImage
 	cd $(linux_srcdir) && ./scripts/clang-tools/gen_compile_commands.py ${linux_wrkdir}
+	cd $(linux_srcdir) && ./scripts/generate_rust_analyzer.py $(linux_srcdir) $(linux_wrkdir) $(rust_sysroot) > rust-project.json
 
 tftp-boot-py:
 	$(MAKE) clean-linux DEVKIT=$(DEVKIT)
@@ -200,6 +203,7 @@ tftp-boot-py:
 	cp $(vmlinux_bin) /srv/tftp/$(DEVKIT)-vmlinux.bin
 	cp $(uimage) /srv/tftp/$(DEVKIT).uImage
 	cd $(linux_srcdir) && ./scripts/clang-tools/gen_compile_commands.py ${linux_wrkdir}
+	cd $(linux_srcdir) && ./scripts/generate_rust_analyzer.py $(linux_srcdir) $(linux_wrkdir) $(rust_sysroot) > rust-project.json
 
 reboot: $(lab)
 	$(lab) -f reboot -b $(DEVKIT) -c $(lab_config)
@@ -215,6 +219,8 @@ random-config:
 		W=1 C=1 \
 		KBUILD_BUILD_TIMESTAMP=$(random_date) \
 		-j$(num_threads) | tee logs/random.log
+	cd $(linux_srcdir) && ./scripts/clang-tools/gen_compile_commands.py ${linux_wrkdir}
+	cd $(linux_srcdir) && ./scripts/generate_rust_analyzer.py $(linux_srcdir) $(linux_wrkdir) $(rust_sysroot) > rust-project.json
 
 .PHONY: allmodconfig
 allmodconfig:
@@ -233,6 +239,8 @@ allmodconfig:
 		-k \
 		KBUILD_BUILD_TIMESTAMP=$(random_date) \
 		-j$(num_threads) 2>&1 | tee logs/allmodconfig.log
+	cd $(linux_srcdir) && ./scripts/clang-tools/gen_compile_commands.py ${linux_wrkdir}
+	cd $(linux_srcdir) && ./scripts/generate_rust_analyzer.py $(linux_srcdir) $(linux_wrkdir) $(rust_sysroot) > rust-project.json
 
 smatch:
 	$(MAKE) clean-linux
@@ -379,6 +387,7 @@ CROSS_COMPILE_CC: $(toolchain_srcdir)
 		--enable-linux
 	$(MAKE) -C $(toolchain_wrkdir) -j$(num_threads)
 # sed 's/^#define LINUX_VERSION_CODE.*/#define LINUX_VERSION_CODE 332032/' -i $(toolchain_dest)/sysroot/usr/include/linux/version.h
+#		--with-isa-spec=20191213
 endif
 
 .PHONY: build-binutils build-llvm build-llvm-pgo sparse
