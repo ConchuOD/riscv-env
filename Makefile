@@ -2,7 +2,6 @@ ISA ?= rv64imafdc
 
 ABI ?= lp64d
 
-QEMU ?= /stuff/qemu/build
 LIBERO_PATH ?= /usr/local/microsemi/Libero_v2021.1/
 SC_PATH ?= /usr/local/microsemi/SoftConsole-v2021.1/
 fpgenprog := $(LIBERO_PATH)/bin64/fpgenprog
@@ -41,6 +40,8 @@ GCC_DIR ?= $(TOOLCHAIN_DIR)/gcc-$(GCC_VERSION)
 SPARSE_DIR ?= $(CURDIR)/sparse
 BINUTILS_DIR ?= $(TOOLCHAIN_DIR)/binutils-$(BINUTILS_VERSION)
 RUSTDIR ?= ~/.rustup/toolchains/1.62-x86_64-unknown-linux-gnu
+QEMU_DIR ?= qemu/
+qemu := $(QEMU_DIR)/build/qemu-system-riscv64
 
 PATH := $(SPARSE_DIR):/$(LLVM_DIR)/bin:$(GCC_DIR)/bin:$(PATH)
 GITID := $(shell git describe --dirty --always)
@@ -257,8 +258,14 @@ smatch:
 		C=2 CHECK=$(srcdir)/smatch/smatch \
 		$(FILE)
 
+qemu-configure:
+	cd $(QEMU_DIR) && ./configure --target-list=riscv64-softmmu
+
+qemu-build:
+	$(MAKE) -C $(QEMU_DIR) -j $(num_threads)
+
 qemu-virt:
-	$(QEMU)/qemu-system-riscv64 -M virt \
+	$(qemu) -M virt \
 		-m 2G -smp 5 \
 		-M virt -nographic \
 		-kernel $(vmlinux_bin) \
@@ -266,7 +273,7 @@ qemu-virt:
 		-initrd $(initramfs)
 
 qemu-clang:
-	$(QEMU)/qemu-system-riscv64 -M virt \
+	$(qemu) -M virt \
 		-M virt -nographic \
 		-kernel $(vmlinux_bin) \
 		-append earlycon \
@@ -276,7 +283,7 @@ qemu-clang:
 		-drive file=$(wrkdir)/stage4-disk.img,format=raw
 
 qemu-icicle:
-	$(QEMU)/qemu-system-riscv64 -M microchip-icicle-kit \
+	$(qemu) -M microchip-icicle-kit \
 		-m 3G -smp 5 \
 		-kernel $(vmlinux_bin) \
 		-dtb $(wrkdir)/riscvpc.dtb \
@@ -286,7 +293,7 @@ qemu-icicle:
 		-D qemu.log -d unimp
 
 qemu-icicle-hss:
-	$(QEMU)/qemu-system-riscv64 -s -S -M microchip-icicle-kit \
+	$(qemu) -s -S -M microchip-icicle-kit \
 		-m 4G -smp 5 \
 		-chardev socket,id=serial1,path=serial1.sock,server=on,wait=on \
 		-display none -serial stdio \
