@@ -60,14 +60,6 @@ target_gdb := $(CROSS_COMPILE)gdb
 CROSS_COMPILE_CC := $(GCC_DIR)/bin/$(CROSS_COMPILE)gcc
 rust_sysroot := $(RUSTDIR)/lib/rustlib/src/rust/library
 
-# # LINUX_CC ?= "CC=riscv64-unknown-linux-gnu-gcc"
-# # LINUX_LD ?= "LD=/stuff/toolchains/binutils-2.35/bin/riscv64-unknown-linux-gnu-ld"
-# # LINUX_LD ?= "LD=/stuff/toolchains/gcc-12/bin/riscv64-unknown-linux-gnu-ld"
-# # LINUX_IAS ?= "LLVM_IAS=0"
-
-# # LINUX_LD ?= "LD=/stuff/toolchains/binutils-2.35/bin/riscv64-unknown-linux-gnu-ld"
-# # LINUX_LD ?= "LD=/stuff/toolchains/llvm-15/bin/ld.lld"
-
 LINUX_IAS ?= "LLVM_IAS=$(CLANG)"
 LINUX_CROSS ?= "$(CROSS_COMPILE)"
 
@@ -204,10 +196,10 @@ tftp-boot-py:
 	cp $(vmlinux_bin) /srv/tftp/$(DEVKIT)-vmlinux.bin
 	cp $(uimage) /srv/tftp/$(DEVKIT).uImage
 	cd $(linux_srcdir) && ./scripts/clang-tools/gen_compile_commands.py ${linux_wrkdir}
-	cd $(linux_srcdir) && ./scripts/generate_rust_analyzer.py $(linux_srcdir) $(linux_wrkdir) $(rust_sysroot) > rust-project.json
+	- cd $(linux_srcdir) && ./scripts/generate_rust_analyzer.py $(linux_srcdir) $(linux_wrkdir) $(rust_sysroot) > rust-project.json
 
 reboot: $(lab)
-	$(lab) -f reboot -b $(DEVKIT) -c $(lab_config)
+	$(lab) -f reset -b $(DEVKIT) -c $(lab_config)
 
 random-config:
 	$(MAKE) clean-linux
@@ -221,7 +213,7 @@ random-config:
 		KBUILD_BUILD_TIMESTAMP=$(random_date) \
 		-j$(num_threads) | tee logs/random.log
 	cd $(linux_srcdir) && ./scripts/clang-tools/gen_compile_commands.py ${linux_wrkdir}
-	cd $(linux_srcdir) && ./scripts/generate_rust_analyzer.py $(linux_srcdir) $(linux_wrkdir) $(rust_sysroot) > rust-project.json
+	- cd $(linux_srcdir) && ./scripts/generate_rust_analyzer.py $(linux_srcdir) $(linux_wrkdir) $(rust_sysroot) > rust-project.json
 
 .PHONY: allmodconfig
 allmodconfig:
@@ -241,7 +233,7 @@ allmodconfig:
 		KBUILD_BUILD_TIMESTAMP=$(random_date) \
 		-j$(num_threads) 2>&1 | tee logs/allmodconfig.log
 	cd $(linux_srcdir) && ./scripts/clang-tools/gen_compile_commands.py ${linux_wrkdir}
-	cd $(linux_srcdir) && ./scripts/generate_rust_analyzer.py $(linux_srcdir) $(linux_wrkdir) $(rust_sysroot) > rust-project.json
+	- cd $(linux_srcdir) && ./scripts/generate_rust_analyzer.py $(linux_srcdir) $(linux_wrkdir) $(rust_sysroot) > rust-project.json
 
 smatch:
 	$(MAKE) clean-linux
@@ -296,7 +288,7 @@ qemu-alex:
 	$(qemu) -M virt \
 		-cpu rv64,h=true,sscofpmf=true \
 		-m 8G -smp 16 \
-		-M virt -nographic \
+		-nographic \
 		-kernel $(vmlinux_bin) \
 		-append "root=/dev/vda ro" \
 		-initrd $(initramfs) \
@@ -310,11 +302,6 @@ qemu-icicle-hss:
 		-bios $(wrkdir)/hss-qemu.bin \
 		-sd work/sdcard.img \
 		-serial chardev:serial1
-# 
-#-append "root=/dev/vda ro" \
-
-# -nic user,model=cadence_gem \
-# -nic tap,ifname=tap,model=cadence_gem,script=no \
 
 coccicheck:
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \

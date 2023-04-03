@@ -52,3 +52,6 @@
 [submodule "binutils"]
 	path = binutils
 	url = https://github.com/bminor/binutils-gdb.git
+[submodule "hart-software-services"]
+	path = hart-software-services
+	url = https://github.com/polarfire-soc/hart-software-services.git
