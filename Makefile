@@ -41,12 +41,14 @@ SPARSE_DIR ?= $(CURDIR)/sparse
 BINUTILS_DIR ?= $(TOOLCHAIN_DIR)/binutils-$(BINUTILS_VERSION)
 RUSTDIR ?= ~/.rustup/toolchains/1.62-x86_64-unknown-linux-gnu
 QEMU_DIR ?= qemu/
+
 qemu := $(QEMU_DIR)/build/qemu-system-riscv64
+qemu_dtb := work/qemu.dtb
 
 PATH := $(SPARSE_DIR):/$(LLVM_DIR)/bin:$(GCC_DIR)/bin:$(PATH)
 GITID := $(shell git describe --dirty --always)
 
-cbl_dir := $(srcdir)/tc-build
+tc_build_dir := $(srcdir)/tc-build
 llvm_srcdir := $(srcdir)/llvm
 llvm_wrkdir := $(wrkdir)/llvm
 toolchain_srcdir := $(srcdir)/riscv-gnu-toolchain
@@ -154,6 +156,8 @@ TARGET_DIR=$(CURDIR)/work/binaries
 BINARIES_DIR=$(CURDIR)/work
 GENIMAGE_TMP=/tmp/genimage-${DEVKIT}
 
+processed_schema := $(linux_wrkdir)/Documentation/devicetree/bindings/processed-schema.json
+
 tftp_boot_scr ?= boot.scr
 
 bootloaders-$(FSBL_SUPPORT) += $(fsbl)
@@ -255,6 +259,12 @@ qemu-configure:
 
 qemu-build:
 	$(MAKE) -C $(QEMU_DIR) -j $(num_threads)
+
+.PHONY: processed-schema
+processed-schema: dtbs_check
+qemu-dtbs:
+	$(qemu) -machine virt -machine dumpdtb=$(qemu_dtb)
+	dt-validate --schema $(processed_schema) $(qemu_dtb)
 
 qemu-virt:
 	$(qemu) -M virt \
@@ -396,14 +406,14 @@ endif
 
 .PHONY: build-binutils build-llvm build-llvm-pgo sparse
 build-llvm:
-	$(cbl_dir)/build-llvm.py -b $(llvm_wrkdir)/llvm/ -i $(LLVM_DIR) -l $(llvm_srcdir) -n
+	$(tc_build_dir)/build-llvm.py -b $(llvm_wrkdir)/llvm/ -i $(LLVM_DIR) -l $(llvm_srcdir) -n
 
 build-llvm-pgo:
-	$(cbl_dir)/build-llvm.py -b $(llvm_wrkdir)/llvm/ -i $(LLVM_DIR)-pgo -l $(llvm_srcdir) -n \
+	$(tc_build_dir)/build-llvm.py -b $(llvm_wrkdir)/llvm/ -i $(LLVM_DIR)-pgo -l $(llvm_srcdir) -n \
 		-L$(linux_srcdir) --pgo=kernel-allmodconfig --targets X86 RISCV
 
 build-binutils:
-	$(cbl_dir)/build-binutils.py -b $(binutils_srcdir) -B $(binutils_wrkdir) -i $(BINUTILS_DIR) -t riscv64
+	$(tc_build_dir)/build-binutils.py -b $(binutils_srcdir) -B $(binutils_wrkdir) -i $(BINUTILS_DIR) -t riscv64
 
 sparse:
 	$(MAKE) -C $(SPARSE_DIR)
