@@ -194,7 +194,7 @@ tftp-boot:
 	cp $(vmlinux_bin) /srv/tftp/$(DEVKIT)-vmlinux.bin
 	cp $(uimage) /srv/tftp/$(DEVKIT).uImage
 	cd $(linux_srcdir) && ./scripts/clang-tools/gen_compile_commands.py ${linux_wrkdir}
-	cd $(linux_srcdir) && ./scripts/generate_rust_analyzer.py $(linux_srcdir) $(linux_wrkdir) $(rust_sysroot) > rust-project.json
+	- cd $(linux_srcdir) && ./scripts/generate_rust_analyzer.py $(linux_srcdir) $(linux_wrkdir) $(rust_sysroot) > rust-project.json
 
 tftp-boot-py:
 	$(MAKE) clean-linux DEVKIT=$(DEVKIT)
@@ -290,6 +290,16 @@ qemu-icicle:
 		-initrd $(initramfs) \
 		-display none -serial null \
 		-serial stdio \
+		-D qemu.log -d unimp
+
+qemu-alex:
+	$(qemu) -M virt \
+		-cpu rv64,h=true,sscofpmf=true \
+		-m 8G -smp 16 \
+		-M virt -nographic \
+		-kernel $(vmlinux_bin) \
+		-append "root=/dev/vda ro" \
+		-initrd $(initramfs) \
 		-D qemu.log -d unimp
 
 qemu-icicle-hss:
@@ -403,7 +413,7 @@ build-llvm:
 
 build-llvm-pgo:
 	$(cbl_dir)/build-llvm.py -b $(llvm_wrkdir)/llvm/ -i $(LLVM_DIR)-pgo -l $(llvm_srcdir) -n \
-		-L$(linux_srcdir) --pgo=kernel-allmodconfig --targets "X86;RISCV"
+		-L$(linux_srcdir) --pgo=kernel-allmodconfig --targets X86 RISCV
 
 build-binutils:
 	$(cbl_dir)/build-binutils.py -b $(binutils_srcdir) -B $(binutils_wrkdir) -i $(BINUTILS_DIR) -t riscv64
