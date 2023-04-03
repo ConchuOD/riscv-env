@@ -37,6 +37,10 @@ targets:
     llvm_version: 15-pgo
     type: "allmodconfig"
 
+  rust:
+    cc: "ccache clang"
+    llvm: 1
+
   gcc:
     cc: "ccache $(CROSS_COMPILE_CC)"
     llvm: 0

@@ -31,7 +31,7 @@ CONFIG_SMP=y
 CONFIG_HOTPLUG_CPU=y
 # CONFIG_CMDLINE="earlycon keep_bootcon debug memblock=debug reboot=cold"
 # CONFIG_CMDLINE="earlycon keep_bootcon debug root=/dev/mmcblk1p2 rootdelay=10"
-CONFIG_CMDLINE="earlycon keep_bootcon root=/dev/mmcblk1p2 rootdelay=10 reboot=cold"
+CONFIG_CMDLINE="earlycon keep_bootcon root=/dev/mmcblk1p2 rootdelay=10"
 # CONFIG_CMDLINE="root=/dev/nfs rw ip=dhcp nfsroot=192.168.2.5:/stuff/nfs_share,tcp,v3 rdinit=/usr/sbin/init rootwait=10 earlycon"
 CONFIG_PM=y
 CONFIG_CPU_IDLE=y
@@ -234,9 +234,7 @@ CONFIG_FPGA=y
 CONFIG_FPGA_MGR_MICROCHIP_SPI=y
 CONFIG_FPGA_BRIDGE=y
 CONFIG_FPGA_REGION=y
-CONFIG_FW_LOADER_USER_HELPER=y
 CONFIG_FPGA_MGR_MICROCHIP_AUTO_UPDATE=y
-CONFIG_FPGA_MICROCHIP_AUTO_UPDATE=y
 
 CONFIG_CACHE_CONTROLLER=y
 CONFIG_ARCH_R9A07G043=y
