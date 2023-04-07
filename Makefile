@@ -31,7 +31,7 @@ include conf/$(DEVKIT)/board.mk
 export CCACHE_DIR := /stuff/ccache
 export CCACHE_TEMPDIR := /stuff/ccache/tmp
 
-GCC_VERSION ?= 11
+GCC_VERSION ?= 12
 LLVM_VERSION ?= 15
 BINUTILS_VERSION ?= 2.35
 TOOLCHAIN_DIR := /stuff/toolchains
@@ -41,9 +41,14 @@ SPARSE_DIR ?= $(CURDIR)/sparse
 BINUTILS_DIR ?= $(TOOLCHAIN_DIR)/binutils-$(BINUTILS_VERSION)
 RUSTDIR ?= ~/.rustup/toolchains/1.62-x86_64-unknown-linux-gnu
 QEMU_DIR ?= qemu/
+XEN_DIR ?= xen/
 
 qemu := $(QEMU_DIR)/build/qemu-system-riscv64
+qemu_arm := $(QEMU_DIR)/arm_build/qemu-system-aarch64
 qemu_dtb := work/qemu.dtb
+
+xen_srcdir := $(XEN_DIR)
+xen := $(xen_srcdir)/xen/xen
 
 PATH := $(SPARSE_DIR):/$(LLVM_DIR)/bin:$(GCC_DIR)/bin:$(PATH)
 GITID := $(shell git describe --dirty --always)
@@ -254,18 +259,6 @@ smatch:
 		C=2 CHECK=$(srcdir)/smatch/smatch \
 		$(FILE)
 
-qemu-configure:
-	cd $(QEMU_DIR) && ./configure --target-list=riscv64-softmmu
-
-qemu-build:
-	$(MAKE) -C $(QEMU_DIR) -j $(num_threads)
-
-.PHONY: processed-schema
-processed-schema: dtbs_check
-qemu-dtbs:
-	$(qemu) -machine virt -machine dumpdtb=$(qemu_dtb)
-	dt-validate --schema $(processed_schema) $(qemu_dtb)
-
 qemu-virt:
 	$(qemu) -M virt \
 		-m 2G -smp 5 \
@@ -303,6 +296,24 @@ qemu-alex:
 		-append "root=/dev/vda ro" \
 		-initrd $(initramfs) \
 		-D qemu.log -d unimp
+
+qemu-arm:
+	$(qemu_arm) -M virt \
+		-m 8G -smp 8 \
+		-cpu cortex-a72 \
+		-nographic \
+		-kernel work/Image \
+		-append "earlycon root=/dev/vda ro" \
+		-D qemu.log -d unimp
+
+qemu-xen:
+	$(qemu) -M virt \
+	-cpu rv64 \
+	-smp 1 -m 2G \
+	-nographic \
+	-kernel $(xen) \
+	-device 'guest-loader,kernel=$(vmlinux_bin),addr=0x80400000,bootargs=console=ttyS0 earlycon=sbi keep_bootcon bootmem_debug' \
+	-D qemu.log -d unimp
 
 qemu-icicle-hss:
 	$(qemu) -s -S -M microchip-icicle-kit \
@@ -417,6 +428,29 @@ build-binutils:
 
 sparse:
 	$(MAKE) -C $(SPARSE_DIR)
+
+qemu-configure:
+	cd $(QEMU_DIR) && ./configure --target-list=riscv64-softmmu
+
+qemu-build:
+	$(MAKE) -C $(QEMU_DIR) -j $(num_threads)
+
+.PHONY: processed-schema
+processed-schema: dtbs_check
+qemu-dtbs:
+	$(qemu) -machine virt -machine dumpdtb=$(qemu_dtb)
+	dt-validate --schema $(processed_schema) $(qemu_dtb)
+
+.PHONY: xen
+xen: $(xen)
+$(xen): $(xen_srcdir) $(CROSS_COMPILE_CC)
+	- mkdir -p $(xen_wrkdir)
+	$(MAKE) -C $(xen_srcdir) \
+	XEN_TARGET_ARCH=riscv64 \
+	CROSS_COMPILE=$(CROSS_COMPILE) \
+	PATH=$(PATH) \
+	KBUILD_DEFCONFIG=tiny64_defconfig \
+	xen
 
 $(buildroot_builddir_stamp): $(buildroot_srcdir) $(buildroot_patches)
 	- rm -rf $(buildroot_builddir)
