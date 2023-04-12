@@ -1,0 +1,15 @@
+# This is the s-mode U-Boot script for the {,lc-}mpfs development kits.
+
+setenv fileaddr 0x90000000
+setenv dtbaddr 0x83000000
+setenv autoload no;
+dhcp;
+setenv serverip 192.168.2.9;
+tftp ${fileaddr} lowmem-fitImage.fit
+bootm start ${fileaddr};
+bootm loados ${fileaddr};
+bootm ramdisk;
+bootm prep;
+fdt set /soc/ethernet@20112000 mac-address ${icicle_mac_addr0};
+fdt set /soc/ethernet@20110000 mac-address ${icicle_mac_addr1};
+bootm go;

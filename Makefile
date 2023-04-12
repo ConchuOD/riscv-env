@@ -187,6 +187,10 @@ lab_config := $(srcdir)/lab/config.yaml
 lab := $(wrkdir)/bin/lab
 
 .PHONY: tftp-boot all-devkits dtbs_check dt_binding_check
+
+compile_commands:
+	cd $(linux_srcdir) && ./scripts/clang-tools/gen_compile_commands.py --directory ${linux_wrkdir}
+
 tftp-boot:
 	$(MAKE) clean-linux DEVKIT=$(DEVKIT)
 	$(MAKE) all W=1 C=1 DEVKIT=$(DEVKIT) 2>&1 | tee logs/tftp.log
@@ -194,7 +198,7 @@ tftp-boot:
 	cp $(uboot_s_scr) /srv/tftp/$(DEVKIT)-boot.scr
 	cp $(vmlinux_bin) /srv/tftp/$(DEVKIT)-vmlinux.bin
 	cp $(uimage) /srv/tftp/$(DEVKIT).uImage
-	cd $(linux_srcdir) && ./scripts/clang-tools/gen_compile_commands.py ${linux_wrkdir}
+	cd $(linux_srcdir) && ./scripts/clang-tools/gen_compile_commands.py --directory ${linux_wrkdir}
 	- cd $(linux_srcdir) && ./scripts/generate_rust_analyzer.py $(linux_srcdir) $(linux_wrkdir) $(rust_sysroot) > rust-project.json
 
 tftp-boot-py:
@@ -204,7 +208,7 @@ tftp-boot-py:
 	cp $(uboot_s_scr) /srv/tftp/$(DEVKIT)-boot.scr
 	cp $(vmlinux_bin) /srv/tftp/$(DEVKIT)-vmlinux.bin
 	cp $(uimage) /srv/tftp/$(DEVKIT).uImage
-	cd $(linux_srcdir) && ./scripts/clang-tools/gen_compile_commands.py ${linux_wrkdir}
+	cd $(linux_srcdir) && ./scripts/clang-tools/gen_compile_commands.py --directory ${linux_wrkdir}
 	- cd $(linux_srcdir) && ./scripts/generate_rust_analyzer.py $(linux_srcdir) $(linux_wrkdir) $(rust_sysroot) > rust-project.json
 
 reboot: $(lab)
@@ -221,7 +225,7 @@ random-config:
 		W=1 C=1 \
 		KBUILD_BUILD_TIMESTAMP=$(random_date) \
 		-j$(num_threads) | tee logs/random.log
-	cd $(linux_srcdir) && ./scripts/clang-tools/gen_compile_commands.py ${linux_wrkdir}
+	cd $(linux_srcdir) && ./scripts/clang-tools/gen_compile_commands.py --directory ${linux_wrkdir}
 	- cd $(linux_srcdir) && ./scripts/generate_rust_analyzer.py $(linux_srcdir) $(linux_wrkdir) $(rust_sysroot) > rust-project.json
 
 .PHONY: allmodconfig
@@ -241,7 +245,7 @@ allmodconfig:
 		-k \
 		KBUILD_BUILD_TIMESTAMP=$(random_date) \
 		-j$(num_threads) 2>&1 | tee logs/allmodconfig.log
-	cd $(linux_srcdir) && ./scripts/clang-tools/gen_compile_commands.py ${linux_wrkdir}
+	cd $(linux_srcdir) && ./scripts/clang-tools/gen_compile_commands.py --directory ${linux_wrkdir}
 	- cd $(linux_srcdir) && ./scripts/generate_rust_analyzer.py $(linux_srcdir) $(linux_wrkdir) $(rust_sysroot) > rust-project.json
 
 smatch:
@@ -293,7 +297,6 @@ qemu-alex:
 		-m 8G -smp 16 \
 		-nographic \
 		-kernel $(vmlinux_bin) \
-		-append "root=/dev/vda ro" \
 		-initrd $(initramfs) \
 		-D qemu.log -d unimp
 
@@ -312,8 +315,9 @@ qemu-xen:
 	-smp 1 -m 2G \
 	-nographic \
 	-kernel $(xen) \
-	-device 'guest-loader,kernel=$(vmlinux_bin),addr=0x80400000,bootargs=console=ttyS0 earlycon=sbi keep_bootcon bootmem_debug' \
+	-device 'guest-loader,kernel=$(vmlinux_bin),addr=0x80400000,bootargs=console=hvc0 earlycon=sbi keep_bootcon' \
 	-D qemu.log -d unimp
+
 
 qemu-icicle-hss:
 	$(qemu) -s -S -M microchip-icicle-kit \
@@ -492,7 +496,7 @@ $(linux_wrkdir)/.config: $(linux_srcdir) $(CROSS_COMPILE_CC)
 	mkdir -p $(dir $@)
 ifneq (,$(findstring $(confdir),$(linux_defconfig)))
 	cp $(linux_defconfig) $@
-	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LLD) $(LINUX_AS) $(LINUX_LD) $(LINUX_CC) ARCH=riscv olddefconfig
+	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LLD) $(LINUX_AS) $(LINUX_LD) $(LINUX_CC) ARCH=riscv olddefconfig $(linux_fragment)
 else
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LLD) $(LINUX_AS) $(LINUX_LD) $(LINUX_CC) ARCH=riscv $(linux_defconfig)
 endif

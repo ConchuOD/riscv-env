@@ -32,6 +32,7 @@ CONFIG_HOTPLUG_CPU=y
 # CONFIG_CMDLINE="earlycon keep_bootcon debug memblock=debug reboot=cold"
 # CONFIG_CMDLINE="earlycon keep_bootcon debug root=/dev/mmcblk1p2 rootdelay=10"
 CONFIG_CMDLINE="earlycon keep_bootcon root=/dev/mmcblk1p2 rootdelay=10 reboot=cold"
+# CONFIG_CMDLINE="console=hvc0 earlycon=sbi keep_bootcon"
 # CONFIG_CMDLINE="root=/dev/nfs rw ip=dhcp nfsroot=192.168.2.5:/stuff/nfs_share,tcp,v3 rdinit=/usr/sbin/init rootwait=10 earlycon"
 CONFIG_PM=y
 CONFIG_CPU_IDLE=y

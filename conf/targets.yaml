@@ -10,6 +10,12 @@ targets:
     llvm: 1
     devkit: "vision5"
 
+  xen:
+    cc: "ccache clang"
+    llvm: 1
+    gcc_version: 11
+    devkit: "xen"
+
   vision5v2:
     cc: "ccache $(CROSS_COMPILE_CC)"
     gcc_version: 13
@@ -18,6 +24,8 @@ targets:
   d1:
     cc: "ccache clang"
     llvm: 1
+    gcc_version: 11
+    devkit: "xen"
     devkit: "d1"
 
   vauban:
