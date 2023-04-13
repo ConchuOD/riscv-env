@@ -470,17 +470,6 @@ qemu-dtbs: processed-schema
 	$(qemu) -machine virt -machine dumpdtb=$(qemu_dtb)
 	dt-validate --schema $(processed_schema) $(qemu_dtb)
 
-# stop building the examples, use buildroot external instead lole
-#$(buildroot_builddir_stamp): $(buildroot_srcdir) $(buildroot_patches)
-#	- rm -rf $(buildroot_builddir)
-#	mkdir -p $(buildroot_builddir) && cd $(buildroot_builddir) && cp $(buildroot_srcdir)/* . -r
-#	for file in $(buildroot_patches) ; do \
-#			cd $(buildroot_builddir) && patch -p1 < $${file} ; \
-#	done
-#	touch $@
-#	rm -rf $(buildroot_initramfs_wrkdir)
-#	mkdir -p $(buildroot_initramfs_wrkdir)
-
 $(buildroot_initramfs_wrkdir):
 	mkdir -p $(buildroot_initramfs_wrkdir)
 
