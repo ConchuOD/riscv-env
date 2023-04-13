@@ -31,7 +31,7 @@ include conf/$(DEVKIT)/board.mk
 export CCACHE_DIR := /stuff/ccache
 export CCACHE_TEMPDIR := /stuff/ccache/tmp
 
-GCC_VERSION ?= 12
+GCC_VERSION ?= 11.3
 LLVM_VERSION ?= 15
 BINUTILS_VERSION ?= 2.35
 TOOLCHAIN_DIR := /stuff/toolchains
@@ -48,7 +48,8 @@ qemu_arm := $(QEMU_DIR)/arm_build/qemu-system-aarch64
 qemu_dtb := work/qemu.dtb
 
 xen_srcdir := $(XEN_DIR)
-xen := $(xen_srcdir)/xen/xen
+xen_wrkdir := $(wrkdir)/xen
+xen := $(xen_wrkdir)/xen
 
 PATH := $(SPARSE_DIR):/$(LLVM_DIR)/bin:$(GCC_DIR)/bin:$(PATH)
 GITID := $(shell git describe --dirty --always)
@@ -266,14 +267,14 @@ smatch:
 qemu-virt:
 	$(qemu) -M virt \
 		-m 2G -smp 5 \
-		-M virt -nographic \
+		-nographic \
 		-kernel $(vmlinux_bin) \
 		-append "root=/dev/vda ro" \
 		-initrd $(initramfs)
 
 qemu-clang:
 	$(qemu) -M virt \
-		-M virt -nographic \
+		-nographic \
 		-kernel $(vmlinux_bin) \
 		-append earlycon \
 		-initrd $(initramfs) \
@@ -408,7 +409,10 @@ else
 CROSS_COMPILE_CC: $(toolchain_srcdir)
 	mkdir -p $(toolchain_wrkdir)
 	mkdir -p $(toolchain_wrkdir)/header_workdir
-	$(MAKE) -C $(linux_srcdir) O=$(toolchain_wrkdir)/header_workdir ARCH=riscv INSTALL_HDR_PATH=$(abspath $(toolchain_srcdir)/linux-headers) headers_install
+	$(MAKE) -C $(linux_srcdir) O=$(toolchain_wrkdir)/header_workdir \
+		ARCH=riscv \
+		INSTALL_HDR_PATH=$(abspath $(toolchain_srcdir)/linux-headers) \
+		headers_install
 	cd $(toolchain_wrkdir); $(toolchain_srcdir)/configure \
 		--prefix=$(toolchain_dest) \
 		--with-arch=$(ISA) \
@@ -449,7 +453,7 @@ qemu-dtbs:
 xen: $(xen)
 $(xen): $(xen_srcdir) $(CROSS_COMPILE_CC)
 	- mkdir -p $(xen_wrkdir)
-	$(MAKE) -C $(xen_srcdir) \
+	$(MAKE) -C $(xen_srcdir) O=$(xen_wrkdir) \
 	XEN_TARGET_ARCH=riscv64 \
 	CROSS_COMPILE=$(CROSS_COMPILE) \
 	PATH=$(PATH) \
