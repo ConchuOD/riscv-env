@@ -4,7 +4,7 @@
 
 setenv autoload no;
 dhcp;
-setenv serverip 10.205.160.53
+setenv serverip 10.205.160.51
 tftp 0x1030000000 fitImage.fit
 bootm start 0x1030000000;
 bootm loados 0x1030000000;
