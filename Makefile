@@ -189,9 +189,6 @@ lab := $(wrkdir)/bin/lab
 
 .PHONY: tftp-boot all-devkits dtbs_check dt_binding_check
 
-compile_commands:
-	cd $(linux_srcdir) && ./scripts/clang-tools/gen_compile_commands.py --directory ${linux_wrkdir}
-
 tftp-boot:
 	$(MAKE) clean-linux DEVKIT=$(DEVKIT)
 	$(MAKE) all W=1 C=1 DEVKIT=$(DEVKIT) 2>&1 | tee logs/tftp.log
@@ -368,6 +365,9 @@ dt_binding_check:
 
 maintainers:
 	cd $(linux_srcdir) && ./scripts/get_maintainer.pl --self-test=patterns | tee $(srcdir)/logs/maintainers_check.log
+
+compile_commands:
+	cd $(linux_srcdir) && ./scripts/clang-tools/gen_compile_commands.py --directory ${linux_wrkdir}
 
 .PHONY: lab
 lab: $(lab)
