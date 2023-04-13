@@ -31,7 +31,7 @@ include conf/$(DEVKIT)/board.mk
 export CCACHE_DIR := /stuff/ccache
 export CCACHE_TEMPDIR := /stuff/ccache/tmp
 
-GCC_VERSION ?= 11.3
+GCC_VERSION ?= 12
 LLVM_VERSION ?= 15
 BINUTILS_VERSION ?= 2.35
 TOOLCHAIN_DIR := /stuff/toolchains
@@ -80,7 +80,6 @@ endif
 
 buildroot_srcdir := $(srcdir)/buildroot
 buildroot_initramfs_wrkdir := $(wrkdir)/$(DEVKIT)/buildroot_initramfs
-buildroot_builddir := $(wrkdir)/$(DEVKIT)/buildroot_build
 buildroot_initramfs_sysroot := $(wrkdir)/$(DEVKIT)/buildroot_initramfs_sysroot
 
 buildroot_initramfs_tar := $(buildroot_initramfs_wrkdir)/images/rootfs.tar
@@ -92,7 +91,6 @@ buildroot_patches := $(shell ls $(buildroot_patchdir)/*.patch)
 kernel-modules-stamp := $(wrkdir)/.modules_stamp
 kernel-modules-install-stamp := $(wrkdir)/$(DEVKIT)/.modules_install_stamp
 buildroot_initramfs_sysroot_stamp := $(wrkdir)/$(DEVKIT)/.buildroot_initramfs_sysroot
-buildroot_builddir_stamp := $(wrkdir)/$(DEVKIT)/.buildroot_builddir
 
 vmlinux := $(linux_wrkdir)/vmlinux
 vmlinux_stripped := $(linux_wrkdir)/vmlinux-stripped
@@ -187,8 +185,7 @@ lab_wrkdir := $(wrkdir)/lab_build
 lab_config := $(srcdir)/lab/config.yaml
 lab := $(wrkdir)/bin/lab
 
-.PHONY: tftp-boot all-devkits dtbs_check dt_binding_check
-
+.PHONY: tftp-boot
 tftp-boot:
 	$(MAKE) clean-linux DEVKIT=$(DEVKIT)
 	$(MAKE) all W=1 C=1 DEVKIT=$(DEVKIT) 2>&1 | tee logs/tftp.log
@@ -199,19 +196,11 @@ tftp-boot:
 	cd $(linux_srcdir) && ./scripts/clang-tools/gen_compile_commands.py --directory ${linux_wrkdir}
 	- cd $(linux_srcdir) && ./scripts/generate_rust_analyzer.py $(linux_srcdir) $(linux_wrkdir) $(rust_sysroot) > rust-project.json
 
-tftp-boot-py:
-	$(MAKE) clean-linux DEVKIT=$(DEVKIT)
-	$(MAKE) all W=1 C=1 DEVKIT=$(DEVKIT)
-	cp $(fit) /srv/tftp/$(DEVKIT)-fitImage.fit
-	cp $(uboot_s_scr) /srv/tftp/$(DEVKIT)-boot.scr
-	cp $(vmlinux_bin) /srv/tftp/$(DEVKIT)-vmlinux.bin
-	cp $(uimage) /srv/tftp/$(DEVKIT).uImage
-	cd $(linux_srcdir) && ./scripts/clang-tools/gen_compile_commands.py --directory ${linux_wrkdir}
-	- cd $(linux_srcdir) && ./scripts/generate_rust_analyzer.py $(linux_srcdir) $(linux_wrkdir) $(rust_sysroot) > rust-project.json
-
+.PHONY: reboot
 reboot: $(lab)
 	$(lab) -f reset -b $(DEVKIT) -c $(lab_config)
 
+.PHONY: random-config
 random-config:
 	$(MAKE) clean-linux
 	mkdir -p $(linux_wrkdir)
@@ -246,6 +235,7 @@ allmodconfig:
 	cd $(linux_srcdir) && ./scripts/clang-tools/gen_compile_commands.py --directory ${linux_wrkdir}
 	- cd $(linux_srcdir) && ./scripts/generate_rust_analyzer.py $(linux_srcdir) $(linux_wrkdir) $(rust_sysroot) > rust-project.json
 
+.PHONY: smatch
 smatch:
 	$(MAKE) clean-linux
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
@@ -261,6 +251,7 @@ smatch:
 		C=2 CHECK=$(srcdir)/smatch/smatch \
 		$(FILE)
 
+.PHONY: qemu-virt
 qemu-virt:
 	$(qemu) -M virt \
 		-m 2G -smp 5 \
@@ -269,6 +260,7 @@ qemu-virt:
 		-append "root=/dev/vda ro" \
 		-initrd $(initramfs)
 
+.PHONY: qemu-clang
 qemu-clang:
 	$(qemu) -M virt \
 		-nographic \
@@ -279,6 +271,7 @@ qemu-clang:
 		-serial mon:stdio \
 		-drive file=$(wrkdir)/stage4-disk.img,format=raw
 
+.PHONY: qemu-icicle
 qemu-icicle:
 	$(qemu) -M microchip-icicle-kit \
 		-m 3G -smp 5 \
@@ -289,6 +282,7 @@ qemu-icicle:
 		-serial stdio \
 		-D qemu.log -d unimp
 
+.PHONY: qemu-alex
 qemu-alex:
 	$(qemu) -M virt \
 		-cpu rv64,h=true,sscofpmf=true \
@@ -298,6 +292,7 @@ qemu-alex:
 		-initrd $(initramfs) \
 		-D qemu.log -d unimp
 
+.PHONY: qemu-arm
 qemu-arm:
 	$(qemu_arm) -M virt \
 		-m 8G -smp 8 \
@@ -307,6 +302,7 @@ qemu-arm:
 		-append "earlycon root=/dev/vda ro" \
 		-D qemu.log -d unimp
 
+.PHONY: qemu-xen
 qemu-xen:
 	$(qemu) -M virt \
 	-cpu rv64 \
@@ -317,6 +313,7 @@ qemu-xen:
 	-D qemu.log -d unimp
 
 
+.PHONY: qemu-icicle-hss
 qemu-icicle-hss:
 	$(qemu) -s -S -M microchip-icicle-kit \
 		-m 4G -smp 5 \
@@ -326,6 +323,7 @@ qemu-icicle-hss:
 		-sd work/sdcard.img \
 		-serial chardev:serial1
 
+.PHONY: coccicheck
 coccicheck:
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
 		ARCH=riscv \
@@ -334,7 +332,8 @@ coccicheck:
 		coccicheck \
 		MODE=report M=$(linux_srcdir)/$(DIR)
 
-all-devkits:
+.PHONY: all_devkits
+all_devkits:
 	$(MAKE) clean-linux
 	$(MAKE) all W=1 DEVKIT=polarberry 2>&1 | tee logs/polarberry.log
 	$(MAKE) clean-linux
@@ -342,6 +341,7 @@ all-devkits:
 	$(MAKE) clean-linux
 	$(MAKE) all W=1 DEVKIT=mainline 2>&1 | tee logs/icicle.log
 
+.PHONY: dtbs_check
 dtbs_check:
 	$(MAKE) clean-linux
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
@@ -355,6 +355,7 @@ dtbs_check:
 		PATH=$(PATH) \
 		dtbs_check W=1 -j$(num_threads) 2>&1 | tee logs/dtbs_check.log
 
+.PHONY: dt_binding_check
 dt_binding_check:
 	$(MAKE) clean-linux
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
@@ -363,11 +364,29 @@ dt_binding_check:
 		PATH=$(PATH) \
 		dt_binding_check -j$(num_threads) 2>&1 | tee logs/dt_binding_check.log
 
+.PHONY: maintainers
 maintainers:
 	cd $(linux_srcdir) && ./scripts/get_maintainer.pl --self-test=patterns | tee $(srcdir)/logs/maintainers_check.log
 
+.PHONY: compile_commands
 compile_commands:
 	cd $(linux_srcdir) && ./scripts/clang-tools/gen_compile_commands.py --directory ${linux_wrkdir}
+
+# random crap
+.PHONY: payload_ext
+
+.PHONY: vmlinux bbl fit flash_image initrd opensbi u-boot bootloaders dtbs
+vmlinux: $(vmlinux_bin)
+fit: $(fit)
+initrd: $(initramfs)
+u-boot: $(hss_uboot_payload_bin)
+flash_image: $(flash_image)
+opensbi: $(opensbi)
+fsbl: $(fsbl)
+bootloaders: $(bootloaders-y)
+dtbs: ${device_tree_blob}
+
+.PHONY: clean distclean clean-linux clean-workdir
 
 .PHONY: lab
 lab: $(lab)
@@ -391,15 +410,7 @@ $(lab): $(lab_srcdir) $(ykush) $(ykurcmd)
 		--root $(wrkdir)
 
 all: $(fit) $(vfat_image) $(bootloaders-y)
-	@echo
-	@echo "GPT (for SPI flash or SDcard) and U-boot Image files have"
-	@echo "been generated for an ISA of $(ISA) and an ABI of $(ABI)"
-	@echo
-	@echo $(fit)
-	@echo $(flash_image)
-	@echo
-	@echo "Refer to the readme for instructions on how to format"
-	@echo "an SD/eMMC with the image & boot Linux."
+	@echo ':)'
 
 ifneq ($(GCC_DIR),$(toolchain_dest))
 $(CROSS_COMPILE_CC):
@@ -419,11 +430,9 @@ CROSS_COMPILE_CC: $(toolchain_srcdir)
 		--with-abi=$(ABI) \
 		--enable-linux
 	$(MAKE) -C $(toolchain_wrkdir) -j$(num_threads)
-# sed 's/^#define LINUX_VERSION_CODE.*/#define LINUX_VERSION_CODE 332032/' -i $(toolchain_dest)/sysroot/usr/include/linux/version.h
-#		--with-isa-spec=20191213
 endif
 
-.PHONY: build-binutils build-llvm build-llvm-pgo sparse
+.PHONY: build-binutils build-llvm build-llvm-pgo sparse qemu-configure qemu-build
 build-llvm:
 	$(tc_build_dir)/build-llvm.py -b $(llvm_wrkdir)/llvm/ -i $(LLVM_DIR) -l $(llvm_srcdir) -n
 
@@ -440,14 +449,9 @@ sparse:
 qemu-configure:
 	cd $(QEMU_DIR) && ./configure --target-list=riscv64-softmmu
 
-qemu-build:
+qemu-build: $(qemu)
+$(qemu):
 	$(MAKE) -C $(QEMU_DIR) -j $(num_threads)
-
-.PHONY: processed-schema
-processed-schema: dtbs_check
-qemu-dtbs:
-	$(qemu) -machine virt -machine dumpdtb=$(qemu_dtb)
-	dt-validate --schema $(processed_schema) $(qemu_dtb)
 
 .PHONY: xen
 xen: $(xen)
@@ -460,26 +464,36 @@ $(xen): $(xen_srcdir) $(CROSS_COMPILE_CC)
 	KBUILD_DEFCONFIG=tiny64_defconfig \
 	xen
 
-$(buildroot_builddir_stamp): $(buildroot_srcdir) $(buildroot_patches)
-	- rm -rf $(buildroot_builddir)
-	mkdir -p $(buildroot_builddir) && cd $(buildroot_builddir) && cp $(buildroot_srcdir)/* . -r
-	for file in $(buildroot_patches) ; do \
-			cd $(buildroot_builddir) && patch -p1 < $${file} ; \
-	done
-	touch $@
-	rm -rf $(buildroot_initramfs_wrkdir)
+.PHONY: processed-schema qemu-dtbs
+processed-schema: dtbs_check
+qemu-dtbs: processed-schema
+	$(qemu) -machine virt -machine dumpdtb=$(qemu_dtb)
+	dt-validate --schema $(processed_schema) $(qemu_dtb)
+
+# stop building the examples, use buildroot external instead lole
+#$(buildroot_builddir_stamp): $(buildroot_srcdir) $(buildroot_patches)
+#	- rm -rf $(buildroot_builddir)
+#	mkdir -p $(buildroot_builddir) && cd $(buildroot_builddir) && cp $(buildroot_srcdir)/* . -r
+#	for file in $(buildroot_patches) ; do \
+#			cd $(buildroot_builddir) && patch -p1 < $${file} ; \
+#	done
+#	touch $@
+#	rm -rf $(buildroot_initramfs_wrkdir)
+#	mkdir -p $(buildroot_initramfs_wrkdir)
+
+$(buildroot_initramfs_wrkdir):
 	mkdir -p $(buildroot_initramfs_wrkdir)
 
-$(buildroot_initramfs_wrkdir)/.config: $(buildroot_builddir_stamp) $(confdir)/initramfs.txt $(buildroot_initramfs_config) $(uboot_s_cfg) $(uboot_s_txt) $(opensbi_dyn)
+$(buildroot_initramfs_wrkdir)/.config: $(buildroot_srcdir) $(buildroot_initramfs_wrkdir) $(confdir)/initramfs.txt $(buildroot_initramfs_config) $(uboot_s_cfg) $(uboot_s_txt) $(opensbi_dyn)
 	cp $(buildroot_initramfs_config) $(buildroot_initramfs_wrkdir)/.config
-	$(MAKE) -C $(buildroot_builddir) RISCV=$(GCC_DIR) PATH=$(PATH) \
+	$(MAKE) -C $(buildroot_srcdir) RISCV=$(GCC_DIR) PATH=$(PATH) \
 		O=$(buildroot_initramfs_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) \
 		-j$(num_threads) \
 		OPENSBI=$(opensbi_dyn) \
 		olddefconfig
 
-$(buildroot_initramfs_tar): $(buildroot_builddir_stamp) $(buildroot_initramfs_wrkdir)/.config CROSS_COMPILE_CC $(buildroot_initramfs_config)
-	$(MAKE) -C $(buildroot_builddir) RISCV=$(GCC_DIR) PATH=$(PATH) \
+$(buildroot_initramfs_tar): $(buildroot_initramfs_wrkdir)/.config CROSS_COMPILE_CC $(buildroot_initramfs_config)
+	$(MAKE) -C $(buildroot_srcdir) RISCV=$(GCC_DIR) PATH=$(PATH) \
 		O=$(buildroot_initramfs_wrkdir) -j$(num_threads) DEVKIT=$(DEVKIT) \
 		OPENSBI=$(opensbi_dyn)
 
@@ -487,28 +501,6 @@ $(buildroot_initramfs_sysroot_stamp): $(buildroot_initramfs_tar)
 	mkdir -p $(buildroot_initramfs_sysroot)
 	tar -xpf $< -C $(buildroot_initramfs_sysroot) --exclude ./dev --exclude ./usr/share/locale
 	touch $@
-
-.PHONY: buildroot_initramfs_menuconfig
-buildroot_initramfs_menuconfig: $(buildroot_initramfs_wrkdir)/.config $(buildroot_builddir_stamp)
-	$(MAKE) -C $(buildroot_builddir) O=$(buildroot_initramfs_wrkdir) menuconfig
-	$(MAKE) -C $(buildroot_builddir) O=$(buildroot_initramfs_wrkdir) savedefconfig
-	cp $(buildroot_initramfs_wrkdir)/defconfig $(buildroot_initramfs_config)
-
-.PHONY: linux_cfg
-cfg: $(linux_wrkdir)/.config
-$(linux_wrkdir)/.config: $(linux_srcdir) $(CROSS_COMPILE_CC)
-	mkdir -p $(dir $@)
-ifneq (,$(findstring $(confdir),$(linux_defconfig)))
-	cp $(linux_defconfig) $@
-	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LLD) $(LINUX_AS) $(LINUX_LD) $(LINUX_CC) ARCH=riscv olddefconfig $(linux_fragment)
-else
-	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LLD) $(LINUX_AS) $(LINUX_LD) $(LINUX_CC) ARCH=riscv $(linux_defconfig)
-endif
-ifeq ($(ISA),$(filter rv32%,$(ISA)))
-	sed 's/^.*CONFIG_ARCH_RV32I.*$$/CONFIG_ARCH_RV32I=y/' -i $@
-	sed 's/^.*CONFIG_ARCH_RV64I.*$$/CONFIG_ARCH_RV64I=n/' -i $@
-	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LLD) $(LINUX_AS) $(LINUX_LD) $(LINUX_CC) ARCH=riscv rv32_defconfig
-endif
 
 $(initramfs).d: $(buildroot_initramfs_sysroot) $(kernel-modules-install-stamp)
 	cd $(wrkdir) && $(linux_srcdir)/usr/gen_initramfs.sh -l $(confdir)/initramfs.txt $(buildroot_initramfs_sysroot) > $@
@@ -524,6 +516,28 @@ $(initramfs): $(initramfs_uc)
 	- rm $(initramfs)
 	gzip $(initramfs_uc) --keep -q
 	mv $(initramfs_uc).gz $(initramfs)
+
+.PHONY: buildroot_initramfs_menuconfig
+buildroot_initramfs_menuconfig: $(buildroot_initramfs_wrkdir)/.config
+	$(MAKE) -C $(buildroot_srcdir) O=$(buildroot_initramfs_wrkdir) menuconfig
+	$(MAKE) -C $(buildroot_srcdir) O=$(buildroot_initramfs_wrkdir) savedefconfig
+	cp $(buildroot_initramfs_wrkdir)/defconfig $(buildroot_initramfs_config)
+
+.PHONY: linux_cfg
+linux_cfg: $(linux_wrkdir)/.config
+$(linux_wrkdir)/.config: $(linux_defconfig) $(linux_fragment) $(linux_srcdir)
+	mkdir -p $(dir $@)
+ifneq (,$(findstring $(confdir),$(linux_defconfig)))
+	cp $(linux_defconfig) $@
+	
+ifneq (,$(linux_fragment))
+	cat $(linux_fragment) >> $@
+endif
+	
+	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LLD) $(LINUX_AS) $(LINUX_LD) $(LINUX_CC) ARCH=riscv olddefconfig
+else
+	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LLD) $(LINUX_AS) $(LINUX_LD) $(LINUX_CC) ARCH=riscv $(linux_defconfig)
+endif
 
 $(vmlinux): $(linux_wrkdir)/.config $(CROSS_COMPILE_CC)
 	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
@@ -568,6 +582,8 @@ $(fit): $(uboot_s) $(uimage) $(vmlinux_bin) $(initramfs) $(device_tree_blob) $(i
 
 $(uimage): $(initramfs)
 	mkimage -A riscv -O linux -T ramdisk -C gzip -d $< $@
+
+# bootloaders
 
 $(libversion): $(fsbl_wrkdir_stamp)
 	- rm -rf $(libversion)
@@ -632,7 +648,6 @@ $(payload_generator_tarball):
 	wget $(payload_generator_url) -O $(payload_generator_tarball) --show-progress
 
 $(hss_payload_generator): $(payload_generator_tarball)
-#	tar -xzf $(payload_generator_tarball) -C $(wrkdir)
 	- rm -rf $(wrkdir)/payload_gen
 	unzip $(payload_generator_tarball) -d $(wrkdir)/payload_gen
 	cp $(wrkdir)/payload_gen/hss-payload-generator/binaries/hss-payload-generator $(wrkdir)
@@ -640,23 +655,11 @@ $(hss_payload_generator): $(payload_generator_tarball)
 $(hss_uboot_payload_bin): $(uboot_s) $(hss_payload_generator) $(bootloaders-y)
 	cd $(buildroot_initramfs_wrkdir)/images && $(hss_payload_generator) -c $(payload_config) -v $(hss_uboot_payload_bin)
 
-.PHONY: payload_ext
 payload_ext: $(uboot_s) $(hss_payload_generator) $(bootloaders-y)
 	cd $(wrkdir) && $(hss_payload_generator) -c $(payload_config) -v $(hss_uboot_payload_bin)
 
-.PHONY: buildroot_initramfs_sysroot vmlinux bbl fit flash_image initrd opensbi u-boot bootloaders dtbs
-buildroot_initramfs_sysroot: $(buildroot_initramfs_sysroot)
-vmlinux: $(vmlinux_bin)
-fit: $(fit)
-initrd: $(initramfs)
-u-boot: $(hss_uboot_payload_bin)
-flash_image: $(flash_image)
-opensbi: $(opensbi)
-fsbl: $(fsbl)
-bootloaders: $(bootloaders-y)
-dtbs: ${device_tree_blob}
+# random crap
 
-.PHONY: clean distclean clean-linux clean-workdir
 clean: clean-linux
 	rm -rf -- $(wrkdir)/$(DEVKIT) $(initramfs_uc)
 

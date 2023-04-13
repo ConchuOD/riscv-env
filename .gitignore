@@ -10,4 +10,5 @@ scripts/
 *.orig
 rootfs.tar.gz
 br-dl-dir/
+br-ccache-dir/
 logs
