@@ -285,7 +285,7 @@ qemu-icicle:
 .PHONY: qemu-alex
 qemu-alex:
 	$(qemu) -M virt \
-		-cpu rv64,h=true,sscofpmf=true \
+		-cpu rv64,v=true,h=true,sscofpmf=true \
 		-m 8G -smp 16 \
 		-nographic \
 		-kernel $(vmlinux_bin) \
@@ -305,11 +305,12 @@ qemu-arm:
 .PHONY: qemu-xen
 qemu-xen:
 	$(qemu) -M virt \
-	-cpu rv64 \
+	-cpu rv64,h=true \
 	-smp 1 -m 2G \
 	-nographic \
 	-kernel $(xen) \
 	-device 'guest-loader,kernel=$(vmlinux_bin),addr=0x80400000,bootargs=console=hvc0 earlycon=sbi keep_bootcon' \
+	-device 'guest-loader,initrd=$(initramfs),addr=0x84000000' \
 	-D qemu.log -d unimp
 
 
