@@ -174,7 +174,7 @@ bootloaders-$(V5V2_SUPPORT) += $(tpl_img)
 
 deploy_dir := $(CURDIR)/deploy
 
-random_date := "@7"
+random_date := "@666"
 
 ykurcmd_srcdir := $(srcdir)/ykurcmd
 ykurcmd := $(wrkdir)/.ykurcmd
@@ -257,7 +257,6 @@ qemu-virt:
 		-m 2G -smp 5 \
 		-nographic \
 		-kernel $(vmlinux_bin) \
-		-append "root=/dev/vda ro" \
 		-initrd $(initramfs)
 
 .PHONY: qemu-clang
@@ -285,7 +284,7 @@ qemu-icicle:
 .PHONY: qemu-alex
 qemu-alex:
 	$(qemu) -M virt \
-		-cpu rv64,v=true,h=true,sscofpmf=true \
+		-cpu rv64,v=true,zbb=true,h=true,sscofpmf=true \
 		-m 8G -smp 16 \
 		-nographic \
 		-kernel $(vmlinux_bin) \
