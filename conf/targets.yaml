@@ -2,7 +2,7 @@
 targets:
   default:
     cc: "ccache clang"
-    gcc_version: 11
+    gcc_version: 13
     llvm: 1
 
   vision5:
@@ -42,7 +42,7 @@ targets:
   allmodconfig_clang:
     cc: "ccache clang"
     llvm: 1
-    llvm_version: 15-pgo
+    llvm_version: 15
     type: "allmodconfig"
 
   rust:

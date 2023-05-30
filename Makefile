@@ -31,8 +31,8 @@ include conf/$(DEVKIT)/board.mk
 export CCACHE_DIR := /stuff/ccache
 export CCACHE_TEMPDIR := /stuff/ccache/tmp
 
-GCC_VERSION ?= 12
-LLVM_VERSION ?= 15
+GCC_VERSION ?= 13
+LLVM_VERSION ?= 16
 BINUTILS_VERSION ?= 2.35
 TOOLCHAIN_DIR := /stuff/toolchains
 LLVM_DIR ?= $(TOOLCHAIN_DIR)/llvm-$(LLVM_VERSION)
@@ -95,6 +95,7 @@ buildroot_initramfs_sysroot_stamp := $(wrkdir)/$(DEVKIT)/.buildroot_initramfs_sy
 vmlinux := $(linux_wrkdir)/vmlinux
 vmlinux_stripped := $(linux_wrkdir)/vmlinux-stripped
 vmlinux_bin := $(wrkdir)/vmlinux.bin
+vmlinux_relocs := $(linux_wrkdir)/vmlinux.relocs
 
 kernel-modules-stamp := $(wrkdir)/.modules_stamp
 kernel-modules-install-stamp := $(wrkdir)/.modules_install_stamp
@@ -540,7 +541,11 @@ $(vmlinux_stripped): $(vmlinux)
 	PATH=$(PATH) $(CROSS_COMPILE)strip -o $@ $<
 
 $(vmlinux_bin): $(vmlinux)
+ifeq (,$(wildcard $(vmlinux_relocs)))
+	PATH=$(PATH) $(CROSS_COMPILE)objcopy -O binary $(vmlinux).relocs $@
+else
 	PATH=$(PATH) $(CROSS_COMPILE)objcopy -O binary $< $@
+endif
 
 .PHONY: kernel-modules kernel-modules-install
 $(kernel-modules-stamp): $(vmlinux)
