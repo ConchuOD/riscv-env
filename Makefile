@@ -541,11 +541,11 @@ $(vmlinux_stripped): $(vmlinux)
 	PATH=$(PATH) $(CROSS_COMPILE)strip -o $@ $<
 
 $(vmlinux_bin): $(vmlinux)
-ifeq (,$(wildcard $(vmlinux_relocs)))
-	PATH=$(PATH) $(CROSS_COMPILE)objcopy -O binary $(vmlinux).relocs $@
-else
-	PATH=$(PATH) $(CROSS_COMPILE)objcopy -O binary $< $@
-endif
+	if [ -f $(vmlinux_relocs) ]; then \
+		PATH=$(PATH) $(CROSS_COMPILE)objcopy -O binary $(vmlinux).relocs $@ ;\
+	else \
+		PATH=$(PATH) $(CROSS_COMPILE)objcopy -O binary $< $@ ;\
+	fi
 
 .PHONY: kernel-modules kernel-modules-install
 $(kernel-modules-stamp): $(vmlinux)
