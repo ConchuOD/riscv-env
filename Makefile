@@ -236,6 +236,26 @@ allmodconfig:
 	cd $(linux_srcdir) && ./scripts/clang-tools/gen_compile_commands.py --directory ${linux_wrkdir}
 	- cd $(linux_srcdir) && ./scripts/generate_rust_analyzer.py $(linux_srcdir) $(linux_wrkdir) $(rust_sysroot) > rust-project.json
 
+.PHONY: allyesconfig
+allyesconfig:
+	$(MAKE) clean-linux
+	mkdir -p $(linux_wrkdir)
+	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
+		ARCH=riscv \
+		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LLD) $(LINUX_AS) $(LINUX_LD) $(LINUX_CC) \
+		PATH=$(PATH) \
+		allyesconfig
+	$(MAKE) -C $(linux_srcdir) O=$(linux_wrkdir) \
+		ARCH=riscv \
+		CROSS_COMPILE=$(LINUX_CROSS) $(LINUX_LLVM) $(LINUX_IAS) $(LINUX_LLD) $(LINUX_AS) $(LINUX_LD) $(LINUX_CC) \
+		PATH=$(PATH) \
+		C=1 \
+		-k \
+		KBUILD_BUILD_TIMESTAMP=$(random_date) \
+		-j$(num_threads) 2>&1 | tee logs/allyesconfig.log
+	cd $(linux_srcdir) && ./scripts/clang-tools/gen_compile_commands.py --directory ${linux_wrkdir}
+	- cd $(linux_srcdir) && ./scripts/generate_rust_analyzer.py $(linux_srcdir) $(linux_wrkdir) $(rust_sysroot) > rust-project.json
+
 .PHONY: smatch
 smatch:
 	$(MAKE) clean-linux
@@ -468,7 +488,7 @@ $(xen): $(xen_srcdir) $(CROSS_COMPILE_CC)
 .PHONY: processed-schema qemu-dtbs
 processed-schema: dtbs_check
 qemu-dtbs: processed-schema
-	$(qemu) -machine virt -machine dumpdtb=$(qemu_dtb)
+	$(qemu) -smp 4 -M virt,aia=aplic,dumpdtb=$(qemu_dtb) -m 1G -nographic
 	dt-validate --schema $(processed_schema) $(qemu_dtb)
 
 $(buildroot_initramfs_wrkdir):

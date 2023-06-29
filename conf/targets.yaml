@@ -5,6 +5,11 @@ targets:
     gcc_version: 13
     llvm: 1
 
+  no-ccache:
+    cc: "clang"
+    gcc_version: 13
+    llvm: 1
+
   vision5:
     cc: "ccache clang"
     llvm: 1
@@ -126,6 +131,21 @@ targets:
     ld_path: "/stuff/toolchains/gcc-11/bin/riscv64-unknown-linux-gnu-ld"
     llvm: 1
 
+  llvm-ld-240-allyesconfig:
+    cc: "ccache clang"
+    llvm_version: 16
+    gcc_version: 13
+    ld_path: "/stuff/toolchains/gcc-13/bin/riscv64-unknown-linux-gnu-ld"
+    llvm: 1
+    type: "allyesconfig"
+
+  gcc-lld-16-allyesconfig:
+    cc: "ccache $(CROSS_COMPILE_CC)"
+    llvm_version: 16
+    gcc_version: 13
+    ld_path: "/stuff/toolchains/llvm-16/bin/ld.lld"
+    type: "allyesconfig"
+  
   llvm-ld-239:
     cc: "ccache clang"
     llvm_version: 17
