@@ -302,6 +302,18 @@ qemu-icicle:
 		-serial stdio \
 		-D qemu.log -d unimp
 
+.PHONY: qemu-icicle-gdb
+qemu-icicle-gdb:
+	$(qemu) -M microchip-icicle-kit \
+		-m 3G -smp 5 \
+		-kernel $(vmlinux_bin) \
+		-dtb $(wrkdir)/riscvpc.dtb \
+		-initrd $(initramfs) \
+		-display none -serial null \
+		-serial stdio \
+		-s -S \
+		-D qemu.log -d unimp
+
 .PHONY: qemu-alex
 qemu-alex:
 	$(qemu) -M virt \
