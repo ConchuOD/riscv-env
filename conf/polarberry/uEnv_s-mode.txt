@@ -4,11 +4,15 @@
 
 setenv partitions "name=u-boot,start=4M,size=1M,type=21686148-6449-6E6F-744E-656564454649;name=kernel,size=100M,type=0FC63DAF-8483-4772-8E79-3D69D8477DE4;name=root,size=-,type=0FC63DAF-8483-4772-8E79-3D69D8477DE4;"
 setenv autoload no;
-dhcp;
-setenv serverip 192.168.2.5
-tftp ${fileaddr} fitImage.fit
-bootm start ${fileaddr};
-bootm loados ${fileaddr};
+dhcp; setenv bootm_size 0x18000000;
+setenv serverip 10.205.160.51;
+setenv fdt_high 0xffffffffffffffff;
+setenv fileaddr 0x8f000000;
+setenv initrd_high 0xffffffffffffffff;
+tftp 0x8f000000 polarberry-fitImage.fit;
+bootm 0x8f000000;
+bootm start 0x8f000000;
+bootm loados 0x8f000000;
 bootm ramdisk;
 bootm prep;
 fdt set /soc/ethernet@20112000 mac-address ${icicle_mac_addr0};
