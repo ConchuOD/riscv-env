@@ -8,10 +8,14 @@ set schedule-multiple
 info threads
 symbol-file work/linux/vmlinux
 
-break devm_clk_hw_register 
+break /home/conor/stuff/linux/drivers/gpio/gpio-mpfs.c:284
 commands 1
 backtrace
+# break /home/conor/stuff/linux/drivers/irqchip/irq-mpfs-mux.c:158
+# break /home/conor/stuff/linux/kernel/irq/irqdomain.c:453
+# break /home/conor/stuff/linux/drivers/of/irq.c:331
+# break /home/conor/stuff/linux/drivers/irqchip/irq-mpfs-mux.c:174
 
-break mpfs_clk_probe
-commands 1
-backtrace
+# condition 2 fwspec->param_count
+
+
