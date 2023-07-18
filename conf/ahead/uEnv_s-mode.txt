@@ -1,0 +1,16 @@
+
+setenv autoload no;
+dhcp;
+setenv serverip 192.168.2.9;
+setenv fileaddr 0x10000000;
+setenv autoload no;
+dhcp;
+setenv serverip 192.168.2.9;
+tftpboot 0x10000000 ahead-fitImage.fit;
+bootm start 0x10000000; bootm loados 0x10000000;
+bootm ramdisk;
+bootm prep; 
+bootm go;
+
+
+setenv autoload no; dhcp; setenv serverip 192.168.2.9; setenv fileaddr 0x10000000; setenv autoload no; dhcp; setenv serverip 192.168.2.9; tftpboot 0x10000000 ahead-fitImage.fit; bootm start 0x10000000; bootm loados 0x10000000; bootm ramdisk; bootm prep; bootm go;
