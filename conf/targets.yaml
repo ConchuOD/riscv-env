@@ -3,12 +3,19 @@ targets:
   default:
     cc: "ccache clang"
     gcc_version: 13
+    llvm_version: 16
     llvm: 1
 
   no-ccache:
     cc: "clang"
     gcc_version: 13
     llvm: 1
+
+  ahead:
+    cc: "ccache $(CROSS_COMPILE_CC)"
+    gcc_version: 11
+    llvm: 1
+    devkit: "ahead"
 
   vision5:
     cc: "ccache clang"

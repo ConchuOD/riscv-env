@@ -127,6 +127,7 @@ opensbi := $(wrkdir)/$(DEVKIT)/fw_payload.bin
 opensbi_dyn := $(wrkdir)/$(DEVKIT)/fw_dynamic.bin
 opensbi_dyn_build := $(opensbi_wrkdir)/platform/generic/firmware/fw_dynamic.bin
 opensbi_build := $(opensbi_wrkdir)/platform/generic/firmware/fw_payload.bin
+opensbi_qemu := $(wrkdir)/$(DEVKIT)/fw_qemu.bin
 second_srcdir := $(srcdir)/2ndboot
 secondboot := $(wrkdir)/.2ndboot
 
@@ -280,6 +281,14 @@ qemu-virt:
 		-kernel $(vmlinux_bin) \
 		-initrd $(initramfs)
 
+.PHONY: qemu-max
+qemu-max:
+	$(qemu) -M virt -cpu max \
+		-m 2G -smp 5 \
+		-nographic \
+		-kernel $(vmlinux_bin) \
+		-initrd $(initramfs)
+
 .PHONY: qemu-clang
 qemu-clang:
 	$(qemu) -M virt \
@@ -415,6 +424,7 @@ initrd: $(initramfs)
 u-boot: $(hss_uboot_payload_bin)
 flash_image: $(flash_image)
 opensbi: $(opensbi)
+opensbi-qemu: $(opensbi_qemu)
 fsbl: $(fsbl)
 bootloaders: $(bootloaders-y)
 dtbs: ${device_tree_blob}
@@ -647,7 +657,15 @@ $(opensbi_build): $(uboot_s) CROSS_COMPILE_CC
 	mkdir -p $(dir $@)
 	$(MAKE) -C $(opensbi_srcdir) O=$(opensbi_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) \
 		PLATFORM=generic FW_PAYLOAD_PATH=$(uboot_s) \
-		 -j $(num_threads)
+		-j $(num_threads)
+
+$(opensbi_qemu): $(uboot_s) CROSS_COMPILE_CC
+	mkdir -p $(opensbi_wrkdir)
+	mkdir -p $(dir $@)
+	$(MAKE) -C $(opensbi_srcdir) O=$(opensbi_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) \
+		PLATFORM=generic \
+		-j $(num_threads)
+	cp $(opensbi_build) $@
 
 $(opensbi): $(opensbi_build)
 	cp $(opensbi_build) $@
