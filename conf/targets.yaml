@@ -80,6 +80,11 @@ targets:
     gcc_version: 13
     llvm: 0
 
+  gcc-13.1:
+    cc: "ccache $(CROSS_COMPILE_CC)"
+    gcc_version: "13.1"
+    llvm: 0
+
   llvm-14:
     cc: "ccache clang"
     llvm_version: 14
