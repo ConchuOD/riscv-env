@@ -7,7 +7,7 @@
         images {
                 vmlinux.bin {
                         description = "Linux kernel";
-                        data = /incbin/("../work/vmlinux.bin");
+                        data = /incbin/("../../work/vmlinux.bin");
                         type = "kernel";
                         arch = "riscv";
                         os = "linux";
@@ -20,7 +20,7 @@
                 };
                 initramfs.cpio.gz {
                         description = "buildroot initramfs";
-                        data = /incbin/("../work/initramfs.cpio.gz");
+                        data = /incbin/("../../work/initramfs.cpio.gz");
                         type = "ramdisk";
                         arch = "riscv";
                         os = "linux";
@@ -31,7 +31,7 @@
                 };
                 riscvpc.dtb {
                         description = "Flattened Device Tree blob";
-                        data = /incbin/("../work/riscvpc.dtb");
+                        data = /incbin/("../../work/riscvpc.dtb");
                         type = "flat_dt";
                         arch = "riscv";
                         compression = "none";

@@ -31,6 +31,7 @@ targets:
   vision5v2:
     cc: "ccache $(CROSS_COMPILE_CC)"
     gcc_version: 13
+    llvm: 0
     devkit: "vision5v2"
 
   d1:
@@ -107,7 +108,7 @@ targets:
 
   llvm-17:
     cc: "ccache clang"
-    llvm_version: 17
+    llvm_version: 17-pgo
     llvm: 1
 
   gcc-lld-13:
@@ -119,10 +120,20 @@ targets:
 
   llvm-ld-235:
     cc: "ccache clang"
-    llvm_version: 17
+    llvm_version: 16
     binutils_path: "/stuff/toolchains/binutils-2.35/bin/"
-    ld_path: "/stuff/toolchains/binutils-2.35/bin/riscv64-unknown-linux-gnu-ld"
+    ld_path: "/stuff/toolchains/binutils-2.35/bin/riscv64-linux-gnu-ld"
     llvm: 1
+
+  gcc-12-bintuils-237:
+    cc: "ccache $(CROSS_COMPILE_CC)"
+    gcc_version: "12.bastardised"
+    llvm: 0
+
+  gcc-12-bintuils-235:
+    cc: "ccache $(CROSS_COMPILE_CC)"
+    gcc_version: "12.bastardised_more"
+    llvm: 0
 
   gcc-ld-235:
     cc: "ccache $(CROSS_COMPILE_CC)"
@@ -181,7 +192,7 @@ targets:
     gcc_version: 12
     llvm_version: 16
     llvm_ias: 0
-    ld_path: "/stuff/toolchains/binutils-2.38/bin/riscv64-unknown-linux-gnu-ld"
+    ld_path: "/stuff/toolchains/binutils-2.38/bin/riscv64-linux-gnu-ld"
     llvm: 1
 
   llvm-16-gas-239:
@@ -196,7 +207,7 @@ targets:
     gcc_version: 11
     llvm_version: 17
     llvm_ias: 0
-    ld_path: "/stuff/toolchains/binutils-2.35/bin/riscv64-unknown-linux-gnu-ld"
+    ld_path: "/stuff/toolchains/binutils-2.35/bin/riscv64-linux-gnu-ld"
     llvm: 1
 
   llvm-gas-239-ld-235:
@@ -204,7 +215,7 @@ targets:
     gcc_version: 12
     llvm_version: 17
     llvm_ias: 0
-    ld_path: "/stuff/toolchains/binutils-2.35/bin/riscv64-unknown-linux-gnu-ld"
+    ld_path: "/stuff/toolchains/binutils-2.35/bin/riscv64-linux-gnu-ld"
     llvm: 1
 
   llvm-binutils:
