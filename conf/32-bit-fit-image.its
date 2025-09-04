@@ -24,7 +24,7 @@
                         type = "ramdisk";
                         arch = "riscv";
                         os = "linux";
-                        load = <0x84000000>;
+                        load = <0x85000000>;
                         hash-1 {
                                 algo = "sha256";
                         };
@@ -35,7 +35,7 @@
                         type = "flat_dt";
                         arch = "riscv";
                         compression = "none";
-                        load = <0x83000000>;
+                        load = <0x84000000>;
                         hash-1 {
                                 algo = "sha256";
                         };

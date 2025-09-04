@@ -1,7 +1,7 @@
 OSBI_SUPPORT ?= y
 SPL_SUPPORT ?= y
 V5V2_SUPPORT ?= y
-UBOOT_VERSION = f6cd05485792e27b494815e87636c83f50d46dbf
+UBOOT_VERSION = 1ebd659cf020843fd8e8ef90d85a66941cbab6ec
 linux_defconfig := $(confdir)/defconfig
 # linux_dtb := $(riscv_dtbdir)/starfive/jh7110-starfive-visionfive-2-va.dtb
 linux_dtb := $(riscv_dtbdir)/starfive/jh7110-starfive-visionfive-2-v1.2a.dtb

@@ -37,7 +37,8 @@ targets:
   vision5v2:
     cc: "ccache $(CROSS_COMPILE_CC)"
     gcc_version: 13
-    llvm: 0
+    llvm_version: 16
+    llvm: 1
     devkit: "vision5v2"
 
   d1:
@@ -48,10 +49,9 @@ targets:
     devkit: "d1"
 
   vauban:
-    cc: "ccache clang"
-    llvm: 1
+    cc: "ccache $(CROSS_COMPILE_CC)"
     devkit: "vauban"
-    gcc_version: 11
+    gcc_version: 13
 
   allmodconfig:
     cc: "ccache $(CROSS_COMPILE_CC)"
@@ -92,6 +92,11 @@ targets:
     gcc_version: "13.1"
     llvm: 0
 
+  gcc-13.2:
+    cc: "ccache riscv64-linux-"
+    gcc_version: "13.2"
+    llvm: 0
+
   llvm-14:
     cc: "ccache clang"
     llvm_version: 14
@@ -125,6 +130,16 @@ targets:
   llvm-18:
     cc: "ccache clang"
     llvm_version: 18
+    llvm: 1
+
+  llvm-19:
+    cc: "ccache clang"
+    llvm_version: 19
+    llvm: 1
+
+  llvm-21:
+    cc: "ccache clang"
+    llvm_version: 21
     llvm: 1
 
   gcc-lld-13:
