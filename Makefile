@@ -182,7 +182,7 @@ lab_config := $(srcdir)/lab/config.yaml
 lab := $(wrkdir)/bin/lab
 
 .PHONY: tftp-boot
-tftp-boot: $(uboot_s_scr) $(uimage) $(fit) $(vmlinux_bin)
+tftp-boot: 
 	$(MAKE) clean-linux DEVKIT=$(DEVKIT)
 	$(MAKE) all W=1 C=1 DEVKIT=$(DEVKIT) 2>&1 | tee logs/tftp.log
 	cp $(fit) /srv/tftp/$(DEVKIT)-fitImage.fit
