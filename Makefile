@@ -362,15 +362,6 @@ coccicheck:
 		coccicheck \
 		MODE=report M=$(linux_srcdir)/$(DIR)
 
-.PHONY: all_devkits
-all_devkits:
-	$(MAKE) clean-linux
-	$(MAKE) all W=1 DEVKIT=polarberry 2>&1 | tee logs/polarberry.log
-	$(MAKE) clean-linux
-	- $(MAKE) all W=1 DEVKIT=icicle-kit-es 2>&1 | tee logs/icicle.log
-	$(MAKE) clean-linux
-	$(MAKE) all W=1 DEVKIT=mainline 2>&1 | tee logs/icicle.log
-
 .PHONY: dtbs_check
 dtbs_check:
 	$(MAKE) clean-linux
