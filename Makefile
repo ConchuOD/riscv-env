@@ -94,8 +94,6 @@ vmlinux_stripped := $(linux_wrkdir)/vmlinux-stripped
 vmlinux_bin := $(wrkdir)/vmlinux.bin
 vmlinux_relocs := $(linux_wrkdir)/vmlinux.relocs
 
-flash_image := $(wrkdir)/$(DEVKIT)-$(GITID).gpt
-vfat_image := $(wrkdir)/$(DEVKIT)-vfat.part
 initramfs_uc := $(wrkdir)/$(DEVKIT)-initramfs.cpio
 initramfs := $(wrkdir)/initramfs.cpio.gz
 fit := $(wrkdir)/fitImage.fit
@@ -111,16 +109,13 @@ libversion := $(fsbl_wrkdir)/lib/version.c
 fsbl := $(wrkdir)/fsbl.bin
 
 uboot_s := $(buildroot_initramfs_wrkdir)/images/u-boot.bin
-uboot_s_cfg := $(confdir)/$(DEVKIT)/smode_defconfig
 uboot_s_txt := $(confdir)/$(DEVKIT)/uEnv_s-mode.txt
 uboot_s_scr := $(buildroot_initramfs_wrkdir)/images/boot.scr
 
 opensbi_srcdir := $(srcdir)/opensbi
 opensbi_wrkdir := $(wrkdir)/opensbi
-opensbi := $(wrkdir)/$(DEVKIT)/fw_payload.bin
-opensbi_dyn := $(wrkdir)/$(DEVKIT)/fw_dynamic.bin
-opensbi_dyn_build := $(opensbi_wrkdir)/platform/generic/firmware/fw_dynamic.bin
-opensbi_build := $(opensbi_wrkdir)/platform/generic/firmware/fw_payload.bin
+opensbi_dyn := $(opensbi_wrkdir)/platform/generic/firmware/fw_dynamic.bin
+opensbi := $(opensbi_wrkdir)/platform/generic/firmware/fw_payload.bin
 opensbi_qemu := $(wrkdir)/$(DEVKIT)/fw_qemu.bin
 second_srcdir := $(srcdir)/2ndboot
 secondboot := $(wrkdir)/.2ndboot
@@ -158,8 +153,6 @@ GENIMAGE_TMP=/tmp/genimage-${DEVKIT}
 
 processed_schema := $(linux_wrkdir)/Documentation/devicetree/bindings/processed-schema.json
 
-tftp_boot_scr ?= boot.scr
-
 bootloaders-$(FSBL_SUPPORT) += $(fsbl)
 bootloaders-$(OSBI_SUPPORT) += $(opensbi)
 bootloaders-$(SECOND_SUPPORT) += $(secondboot)
@@ -186,7 +179,7 @@ tftp-boot:
 	$(MAKE) clean-linux DEVKIT=$(DEVKIT)
 	$(MAKE) all W=1 C=1 DEVKIT=$(DEVKIT) 2>&1 | tee logs/tftp.log
 	cp $(fit) /srv/tftp/$(DEVKIT)-fitImage.fit
-	cp $(uboot_s_scr) /srv/tftp/$(DEVKIT)-boot.scr
+	- cp $(uboot_s_scr) /srv/tftp/$(DEVKIT)-boot.scr
 	cp $(vmlinux_bin) /srv/tftp/$(DEVKIT)-vmlinux.bin
 	cp $(uimage) /srv/tftp/$(DEVKIT).uImage
 	cd $(linux_srcdir) && ./scripts/clang-tools/gen_compile_commands.py --directory ${linux_wrkdir}
@@ -412,12 +405,11 @@ compile_commands:
 # random crap
 .PHONY: payload_ext
 
-.PHONY: vmlinux bbl fit flash_image initrd opensbi u-boot bootloaders dtbs
+.PHONY: vmlinux bbl fit initrd opensbi u-boot bootloaders dtbs
 vmlinux: $(vmlinux_bin)
 fit: $(fit)
 initrd: $(initramfs)
 u-boot: $(hss_uboot_payload_bin)
-flash_image: $(flash_image)
 opensbi: $(opensbi)
 opensbi-qemu: $(opensbi_qemu)
 fsbl: $(fsbl)
@@ -447,7 +439,7 @@ $(lab): $(lab_srcdir) $(ykush) $(ykurcmd)
 		--target-dir $(lab_wrkdir) \
 		--root $(wrkdir)
 
-all: $(fit) $(vfat_image) $(bootloaders-y)
+all: $(fit) $(bootloaders-y)
 	@echo ':)'
 
 .PHONY: build-binutils build-llvm build-llvm-pgo sparse qemu-configure qemu-build
@@ -489,7 +481,7 @@ qemu-dtbs: processed-schema
 		-initrd /stuff/brsdk/work/mainline-initramfs.cpio -kernel $(qemu_dtb) -cpu max -m 1G -nographic
 	dt-validate --schema $(processed_schema) $(qemu_dtb) 2>&1 | tee logs/dtbdump.log
 
-$(buildroot_initramfs_wrkdir)/.config: $(buildroot_srcdir) $(confdir)/initramfs.txt $(buildroot_initramfs_config) $(uboot_s_cfg) $(uboot_s_txt) $(opensbi_dyn)
+$(buildroot_initramfs_wrkdir)/.config: $(buildroot_srcdir) $(confdir)/initramfs.txt $(buildroot_initramfs_config) $(uboot_s_txt) $(opensbi_dyn)
 	mkdir -p $(buildroot_initramfs_wrkdir)
 	cp $(buildroot_initramfs_config) $(buildroot_initramfs_wrkdir)/.config
 	$(MAKE) -C $(buildroot_srcdir) RISCV=$(GCC_DIR) PATH=$(PATH) \
@@ -603,16 +595,12 @@ $(fsbl): $(libversion) $(fsbl_wrkdir_stamp) $(device_tree_blob)
 	
 $(uboot_s): $(buildroot_initramfs_sysroot_stamp)
 
-$(opensbi_dyn_build):
+$(opensbi_dyn):
 	mkdir -p $(opensbi_wrkdir)
 	$(MAKE) -C $(opensbi_srcdir) O=$(opensbi_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) \
 		PLATFORM=generic -j $(num_threads)
 
-$(opensbi_dyn): $(opensbi_dyn_build)
-	cp $(opensbi_dyn_build) $@
-
-opensbi_build := $(opensbi_wrkdir)/platform/generic/firmware/fw_payload.bin
-$(opensbi_build): $(uboot_s)
+$(opensbi): $(uboot_s)
 	mkdir -p $(opensbi_wrkdir)
 	mkdir -p $(dir $@)
 	$(MAKE) -C $(opensbi_srcdir) O=$(opensbi_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) \
@@ -625,10 +613,7 @@ $(opensbi_qemu): $(uboot_s)
 	$(MAKE) -C $(opensbi_srcdir) O=$(opensbi_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) \
 		PLATFORM=generic \
 		-j $(num_threads)
-	cp $(opensbi_build) $@
-
-$(opensbi): $(opensbi_build)
-	cp $(opensbi_build) $@
+	cp $(opensbi) $@
 
 $(secondboot): $(opensbi)
 	cd $(wrkdir) && $(second_srcdir)/build/fsz.sh $(opensbi)
@@ -671,7 +656,7 @@ clean-workdir:
 	rm -rf -- $(wrkdir)
 
 clean-linux:
-	rm -rf -- $(fit) $(device_tree_blob) $(vfat_image) $(vmlinux_bin) $(linux_wrkdir)
+	rm -rf -- $(fit) $(device_tree_blob) $(vmlinux_bin) $(linux_wrkdir)
 
 distclean:
 	rm -rf -- $(wrkdir) $(toolchain_dest) br-dl-dir/ arch/ include/ scripts/ .cache.mk
@@ -690,124 +675,6 @@ $(openocd): $(openocd_srcdir)
 	cd $(openocd_srcdir) && ./bootstrap
 	cd $(openocd_wrkdir) && $</configure --enable-maintainer-mode --disable-werror --enable-ft2232_libftdi
 	$(MAKE) -C $(openocd_wrkdir)
-
-EXT_CFLAGS := -DMPFS_HAL_FIRST_HART=4 -DMPFS_HAL_LAST_HART=4
-export EXT_CFLAGS
-.PHONY: amp
-amp: $(amp_example)
-$(amp_example): $(amp_example_srcdir) $(buildroot_initramfs_sysroot_stamp)
-	rm -rf $(amp_example_srcdir)/Default
-	$(MAKE) -C $(amp_example_srcdir) O=$(amp_example_wrkdir) CROSS_COMPILE=$(CROSS_COMPILE) REMOTE=1
-	cp $(amp_example_srcdir)/Remote-Default/mpfs-rpmsg-remote.elf $(amp_example)
-
-$(vfat_image): $(fit) $(uboot_s_scr) $(bootloaders-y)
-	@if [ `du --apparent-size --block-size=512 $(fsbl) | cut -f 1` -ge $(FSBL_SIZE) ]; then \
-		echo "FSBL is too large for partition!!\nReduce fsbl or increase partition size"; \
-		rm $(flash_image); exit 1; fi
-	dd if=/dev/zero of=$(vfat_image) bs=512 count=$(VFAT_SIZE)
-	/sbin/mkfs.vfat $(vfat_image)
-	PATH=$(PATH) MTOOLS_SKIP_CHECK=1 mcopy -i $(vfat_image) $(fit) ::fitImage.fit
-	PATH=$(PATH) MTOOLS_SKIP_CHECK=1 mcopy -i $(vfat_image) $(uboot_s_scr) ::boot.scr
-
-## sd/emmc/envm formatting
-
-# partition addreses for mpfs
-BBL		= 2E54B353-1271-4842-806F-E436D6AF6985
-VFAT		= EBD0A0A2-B9E5-4433-87C0-68B6B72699C7
-LINUX		= 0FC63DAF-8483-4772-8E79-3D69D8477DE4
-FSBL		= 5B193300-FC78-40CD-8002-E86C45580B47
-UBOOT		= 5B193300-FC78-40CD-8002-E86C45580B47
-UBOOTENV	= a09354ac-cd63-11e8-9aff-70b3d592f0fa
-UBOOTDTB	= 070dd1a8-cd64-11e8-aa3d-70b3d592f0fa
-UBOOTFIT	= 04ffcafa-cd65-11e8-b974-70b3d592f0fa
-HSS_PAYLOAD 	= 21686148-6449-6E6F-744E-656564454649
-
-# partition addreses
-UENV_START=100
-UENV_END=1023
-FSBL_START=2048
-FSBL_END=4095
-FSBL_SIZE=2048
-VFAT_START=4096
-VFAT_END=184023
-VFAT_SIZE=179928
-RESERVED_SIZE=2000
-OSBI_START=185648
-OSBI_END=219024
-
-# partition addreses for icicle kit
-UBOOT_START=2048
-UBOOT_END=23248
-LINUX_START=24096
-LINUX_END=208119
-ROOT_START=209119
-
-.PHONY: format-icicle-image
-format-icicle-image: $(fit) $(uboot_s_scr)
-	@test -b $(DISK) || (echo "$(DISK): is not a block device"; exit 1)
-	$(eval DEVICE_NAME := $(shell basename $(DISK)))
-	$(eval SD_SIZE := $(shell cat /sys/block/$(DEVICE_NAME)/size))
-	$(eval ROOT_SIZE := $(shell expr $(SD_SIZE) \- $(RESERVED_SIZE)))
-	/sbin/sgdisk -Zo  \
-    --new=1:$(UBOOT_START):$(UBOOT_END) --change-name=1:uboot --typecode=1:$(HSS_PAYLOAD) \
-    --new=2:$(LINUX_START):$(LINUX_END) --change-name=2:kernel --typecode=2:$(LINUX) \
-    --new=3:$(ROOT_START):${ROOT_SIZE} --change-name=3:root	--typecode=2:$(LINUX) \
-    ${DISK}	
-	-/sbin/partprobe
-	@sleep 1
-	
-ifeq ($(DISK)1,$(wildcard $(DISK)1))
-	@$(eval partition_prefix := )
-else ifeq ($(DISK)s1,$(wildcard $(DISK)s1))
-	@$(eval partition_prefix := s)
-else ifeq ($(DISK)p1,$(wildcard $(DISK)p1))
-	@$(eval partition_prefix := p)
-else
-	@echo Error: Could not find bootloader partition for $(DISK)
-	@exit 1
-endif
-
-	dd if=$(hss_uboot_payload_bin) of=$(DISK)$(partition_prefix)1
-	dd if=$(vfat_image) of=$(DISK)$(partition_prefix)2
-
-# mpfs
-.PHONY: format-boot-loader
-format-boot-loader: $(fit) $(vfat_image) $(bootloaders-y)
-	@test -b $(DISK) || (echo "$(DISK): is not a block device"; exit 1)
-	$(eval DEVICE_NAME := $(shell basename $(DISK)))
-	$(eval SD_SIZE := $(shell cat /sys/block/$(DEVICE_NAME)/size))
-	$(eval ROOT_SIZE := $(shell expr $(SD_SIZE) \- $(RESERVED_SIZE)))
-	/sbin/sgdisk -Zo  \
-		--new=1:$(FSBL_START):$(FSBL_END)   --change-name=1:fsbl	--typecode=1:$(FSBL) \
-		--new=2:$(VFAT_START):$(VFAT_END)  --change-name=2:"Vfat Boot"	--typecode=2:$(VFAT)   \
-		--new=3:$(OSBI_START):$(OSBI_END)  --change-name=3:osbi	--typecode=3:$(BBL) \
-		--new=4:264192:$(ROOT_SIZE) --change-name=4:root	--typecode=4:$(LINUX) \
-		$(DISK)
-	-/sbin/partprobe
-	@sleep 1
-ifeq ($(DISK)p1,$(wildcard $(DISK)p1))
-	@$(eval PART1 := $(DISK)p1)
-	@$(eval PART2 := $(DISK)p2)
-	@$(eval PART3 := $(DISK)p3)
-	@$(eval PART4 := $(DISK)p4)
-else ifeq ($(DISK)s1,$(wildcard $(DISK)s1))
-	@$(eval PART1 := $(DISK)s1)
-	@$(eval PART2 := $(DISK)s2)
-	@$(eval PART3 := $(DISK)s3)
-	@$(eval PART4 := $(DISK)s4)
-else ifeq ($(DISK)1,$(wildcard $(DISK)1))
-	@$(eval PART1 := $(DISK)1)
-	@$(eval PART2 := $(DISK)2)
-	@$(eval PART3 := $(DISK)3)
-	@$(eval PART4 := $(DISK)4)
-else
-	@echo Error: Could not find bootloader partition for $(DISK)
-	@exit 1
-endif
-
-	dd if=$(fsbl) of=$(PART1) bs=4096
-	dd if=$(vfat_image) of=$(PART2) bs=4096
-	dd if=$(opensbi) of=$(PART3) bs=4096
 
 .PHONY: genimage-icicle-image
 genimage-icicle-image: $(fit) $(uboot_s_scr)

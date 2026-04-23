@@ -3,7 +3,7 @@ targets:
   default:
     cc: "ccache clang"
     gcc_version: 13
-    llvm_version: 16
+    llvm_version: 21
     llvm: 1
 
   no-ccache:
@@ -61,7 +61,7 @@ targets:
   allmodconfig_clang:
     cc: "ccache clang"
     llvm: 1
-    llvm_version: 15
+    llvm_version: 17
     type: "allmodconfig"
 
   rust:
